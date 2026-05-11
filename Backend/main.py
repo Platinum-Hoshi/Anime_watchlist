@@ -13,6 +13,7 @@ from db import (
     add_relation,
     update_progress,
     get_universe,
+    get_node,
     get_node_by_anime_id,
     get_all_universes
 )
@@ -91,7 +92,7 @@ def import_recrusive_universe(
         node_id = add_anime_node(universe_id, {
             "id": node["id"],
             "title": {
-                "romaji": node["title"]
+                "romaji": node["title"] if isinstance(node["title"], str) else node["title"].get("romaji", "")
             },
             "format": node["format"],
             "episodes": node["episodes"]
@@ -122,38 +123,6 @@ def import_recrusive_universe(
 def universes():
     return {
         "universes": get_all_universes()
-    }
-
-def get_node(node_id):
-    conn = get_conn()
-    c = conn.cursor()
-
-    c.execute("""
-    SELECT
-        anime_nodes.id,
-        anime_nodes.title,
-        anime_nodes.format,
-        anime_nodes.total_episodes,
-        progress.watched_episodes,
-        progress.status
-    FROM anime_nodes
-    LEFT JOIN progress ON anime_nodes.id = progress.node_id
-    WHERE anime_nodes.id = ?
-    """, (node_id,))
-
-    row = c.fetchone()
-    conn.close()
-
-    if not row:
-        return None
-
-    return {
-        "id": row[0],
-        "title": row[1],
-        "format": row[2],
-        "episodes": row[3],
-        "progress": row[4],
-        "status": row[5]
     }
 
 @app.get("/nodes/{node_id}")

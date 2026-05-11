@@ -49,7 +49,7 @@ export default function Universe({ id }) {
                 <p>
                     Completed Anime:
                     {" "}
-                    {data.stas.completed_count}
+                    {data.stats.completed_count}
                 </p>
                 <p>
                     Watching:

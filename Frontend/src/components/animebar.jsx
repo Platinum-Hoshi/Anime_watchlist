@@ -28,14 +28,14 @@ export default function AnimeBar({
                 style={{
                     display: "flex",
                     justifyContent: "space-between",
-                    cursor "pointer"
+                    cursor: "pointer"
                 }}
                 onClick={() => setOpen(!open)}
             >
                 <div>
                     <h3>{node.title}</h3>
                     <p>
-                        {node.porgress} / {node.episodes}
+                        {node.progress} / {node.episodes}
                     </p>
                     <p>
                         {node.status}
@@ -58,7 +58,7 @@ export default function AnimeBar({
                     onClick={() =>
                         onProgressChange(
                             node,
-                            node.porgress +1
+                            node.progress + 1
                         )
                     }
                 >
@@ -69,7 +69,7 @@ export default function AnimeBar({
             {/* Relations */}
             <div style={{ marginTop: "12px" }}>
                 <h4>Relations</h4>
-                {relations.map((relation, idex) => {
+                {relations.map((relation, index) => {
                     const relatedId =
                         relation.source === node.id
                             ? relation.target
@@ -103,7 +103,7 @@ export default function AnimeBar({
             </div>
 
             {/*  Episodes */}
-            {oopen && (
+            {open && (
                 <EpisodeList
                     episodes={node.episodes}
                     progress={node.progress}

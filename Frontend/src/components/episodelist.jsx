@@ -8,7 +8,7 @@ export default function EpisodeList({
         const watched = i <= progress;
         items.push(
             <div
-                key=[i]
+                key={i}
                 style={{
                     display: "flex",
                     alignItems: "center",

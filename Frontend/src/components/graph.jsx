@@ -30,7 +30,7 @@ export default function Graph({ nodes, edges, onNodeClick }) {
                     selector: "node",
                     style: {
                         "label": "data(label)",
-                        "background-color": "center",
+                        "background-color": "data(color)",
                         "color": "#fff",
                         "font-size": "10px"
                     }
@@ -51,13 +51,14 @@ export default function Graph({ nodes, edges, onNodeClick }) {
         });
         cy.on("tap", "node", (event) => {
             const node = event.target.data();
+            onNodeClick(node.id);
         });
         return () => cy.destroy();
     }, [nodes, edges]);
     return (
         <div
             ref={containerRef}
-            style={{ widht: "100%", height: "400px" }}
+            style={{ width: "100%", height: "400px" }}
         />
     );
 }

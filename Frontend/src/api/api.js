@@ -5,19 +5,18 @@ export async function getUniverses() {
     return res.json();
 }
 
-export async function getUniverses(id) {
-    const res = await fetch(`${BASE_URL}/universes/${id}`);
+export async function getUniverse(id) {
+    const res = await fetch(`${BASE_URL}/universe/${id}`);
     return res.json();
 }
 
-export async function updateProgress(nodeID, progress) {
+export async function updateProgress(nodeId, progress) {
     const res = await fetch(`${BASE_URL}/node/${nodeId}/progress`, {
         method: "PATCH",
         headers: {
-            "Content-Type": "applications/json"
+            "Content-Type": "application/json"
         },
         body: JSON.stringify({ progress })
     });
     return res.json();
 }
-

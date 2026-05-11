@@ -108,8 +108,8 @@ def add_anime_node(universe_id, anime):
         anime["id"],
         anime["title"]["romaji"],
         anime["format"],
-        anime["cover"],
-        anime["banner"],
+        anime.get("cover"),
+        anime.get("banner"),
         anime["episodes"]
     ))
 
@@ -189,7 +189,7 @@ def get_universe(universe_id):
     LEFT JOIN progress
     ON anime_nodes.id = progress.node_id
     WHERE anime_nodes.universe_id = ?
-    """, (universe_id))
+    """, (universe_id,))
 
     rows = c.fetchall()
 
@@ -272,7 +272,7 @@ def get_status_color(status):
 
 def get_all_universes():
     conn = get_conn()
-    c = conn.cursor
+    c = conn.cursor()
 
     c.execute("""
     SELECT id, name, main_anime_id
@@ -329,4 +329,35 @@ def calculate_universe_stats(nodes):
         "completed_count": completed,
         "watching_count": watching,
         "planned_count": planned
+    }
+def get_node(node_id):
+    conn = get_conn()
+    c = conn.cursor()
+
+    c.execute("""
+    SELECT
+        anime_nodes.id,
+        anime_nodes.title,
+        anime_nodes.format,
+        anime_nodes.total_episodes,
+        progress.watched_episodes,
+        progress.status
+    FROM anime_nodes
+    LEFT JOIN progress ON anime_nodes.id = progress.node_id
+    WHERE anime_nodes.id = ?
+    """, (node_id,))
+
+    row = c.fetchone()
+    conn.close()
+
+    if not row:
+        return None
+
+    return {
+        "id": row[0],
+        "title": row[1],
+        "format": row[2],
+        "episodes": row[3],
+        "progress": row[4],
+        "status": row[5]
     }
