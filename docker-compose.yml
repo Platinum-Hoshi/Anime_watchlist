@@ -1,0 +1,22 @@
+services:
+
+  backend:
+    build: ./Backend
+    ports:
+      - "8000:8000"
+
+    volumes:
+      - ./Backend:/app
+      - ./data:/data
+
+  frontend:
+    build: ./Frontend
+    ports:
+      - "5173:5173"
+
+    volumes:
+      - ./Frontend:/app
+      - /app/node_modules
+
+    depends_on:
+      - backend
