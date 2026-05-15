@@ -116,6 +116,10 @@ def get_anime_by_id(anime_id: int):
 
     data = response.json()
     anime = data["data"]["Media"]
+
+    if anime is None:
+        return None
+
     graph = build_graph(anime)
     return format_anime(anime, graph)
 
@@ -127,8 +131,8 @@ def format_anime(anime, graph):
             "english": anime["title"]["english"],
             "native": anime["title"]["native"],
         },
-        "cover": anime["coverImage"]["large"],
-        "banner": anime["bannerImage"],
+        "cover": (anime.get("coverImage") or {}).get("large"),
+        "banner": anime.get("bannerImage"),
         "year": anime["seasonYear"],
         "status": anime["status"],
         "format": anime["format"],
