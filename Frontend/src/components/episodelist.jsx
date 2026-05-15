@@ -13,7 +13,11 @@ export default function EpisodeList({
                     display: "flex",
                     alignItems: "center",
                     gap: "8px",
-                    marginBottom: "4px"
+                    marginBottom: "4px",
+                    padding: "4px 8px",
+                    borderRadius: "6px",
+                    background: watched ? "#f0fdf4" : "transparent",
+                    color: watched ? "#16a34a" : "#374151"
                 }}
             >
                 <input

@@ -31,8 +31,14 @@ export default function Graph({ nodes, edges, onNodeClick }) {
                     style: {
                         "label": "data(label)",
                         "background-color": "data(color)",
-                        "color": "#fff",
-                        "font-size": "10px"
+                        "color": "#1a1a1a",
+                        "font-size": "11px",
+                        "text-valign": "bottom",
+                        "text-margin-y": "4px",
+                        "border-width": 2,
+                        "border-color": "#fff",
+                        "width": 40,
+                        "height": 40
                     }
                 },
                 {
@@ -58,7 +64,14 @@ export default function Graph({ nodes, edges, onNodeClick }) {
     return (
         <div
             ref={containerRef}
-            style={{ width: "100%", height: "400px" }}
+            style={{
+                width: "100%",
+                height: "400px",
+                borderRadius: "12px",
+                border: "1px solid #e0e0e0",
+                marginBottom: "24px",
+                background: "#fafafa"
+            }}
         />
     );
 }

@@ -25,42 +25,32 @@ export default function Universe({ id }) {
     }
 
     return (
-        <div>
+        <div style={{ maxWidh: "900px", margin: "0 auto", padding: "24px", fontFamily: "sans-serif" }}>
             <h1>Universe</h1>
 
             <div
                 style={{
-                    padding: "12px",
-                    border: "1px solid #444",
-                    borderRadius: "10px",
-                    marginBottom: "20px"
-                }}
-            >
-                <h2>
-                    Completion: {data.stats.completion}%
-                </h2>
-                <p>
-                    Watched Episodes:
-                    {" "}
-                    {data.stats.watched_episodes}
-                    {" / "}
-                    {data.stats.total_episodes}
-                </p>
-                <p>
-                    Completed Anime:
-                    {" "}
-                    {data.stats.completed_count}
-                </p>
-                <p>
-                    Watching:
-                    {" "}
-                    {data.stats.watching_count}
-                </p>
-                <p>
-                    Planned:
-                    {" "}
-                    {data.stats.planned_count}
-                </p>
+                    padding: "20px",
+                    background: "#fff",
+                    border: "1px solid #e0e0e0",
+                    borderRadius: "12px",
+                    marginBottom: "24px",
+                    display: "grid",
+                    gridTemplateColums: "repeat(5, 1fr)",
+                    gap: "16px"
+                }}>
+                    {[
+                        { label: "Completion", value: `${data.stats.completion}%` },
+                        { label: "Episodes", value: `${data.stats.watched_episodes} / ${data.stats.total_episodes}`},
+                        { label: "Completed", value: data.stats.completed_count },
+                        { label: "Watching", value: data.stats.watching_count },
+                        { label: "Planned", value: data.stats.planned_count },
+                    ].map(stat => (
+                        <div key={stat.label} style={{ textAlign: "center" }}>
+                            <div style={{ fontSize: "22px", fontWeight: "700", color: "#1a1a1a" }}>{stat.value}</div>
+                            <div style={{ fontSize: "12px", color: "#888", marginTop: "4px"}}>{stat.label}</div>
+                        </div>
+                    ))}
             </div>
 
             {/* Graph */}
