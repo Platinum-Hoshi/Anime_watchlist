@@ -80,6 +80,11 @@ def get_anime_by_id(anime_id: int):
             description
             genres
             episodes
+            coverImage {
+                large
+                medium
+            }
+            bannerImage
             relations {
                 edges{
                     relationType
