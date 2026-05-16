@@ -1,4 +1,4 @@
-const BASE_URL = "http://localhost:8000";
+const BASE_URL = "http://192.168.36.160:8000";
 
 export async function getUniverses() {
     const res = await fetch(`${BASE_URL}/universes`);
