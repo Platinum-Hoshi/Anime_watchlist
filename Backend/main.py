@@ -84,6 +84,10 @@ def import_recrusive_universe(
 
     visited.add(anime_id)
     anime = get_anime_by_id(anime_id)
+
+    if anime is None:
+        return
+    
     graph = anime["graph"]
     node_map = {}
 
