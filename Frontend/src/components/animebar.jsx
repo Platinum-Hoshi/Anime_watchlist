@@ -20,7 +20,7 @@ export default function AnimeBar({
                 border: "1px solid #e0e0e0",
                 borderRadius: "12px",
                 padding: "16px",
-                marginBottom: "10px",
+                marginBottom: "10px"
                 background: "#fff",
                 boxShadow: "0 1px 3px rgba(0,0,0,0.06)"
             }}
@@ -63,35 +63,6 @@ export default function AnimeBar({
                 <span>
                     {open ? "▲" : "▼"}
                 </span>
-            </div>
-
-            {/* Buttons */}
-            <div
-                style={{
-                    marginTop: "10px",
-                    display: "flex",
-                    gap: "10px"
-                }}
-            >
-                <button
-                    onClick={() =>
-                        onProgressChange(
-                            node,
-                            node.progress + 1
-                        )
-                    }
-                    style={{
-                        padding: "6px 14px",
-                        borderRadius: "8px",
-                        border: "1px solid #d1d5db",
-                        background: "#fff",
-                        cursor: "pointer",
-                        fontSize: "13px",
-                        fontWeight: "500"
-                    }}
-                >
-                    + Episode
-                </button>
             </div>
 
             {/* Relations */}
