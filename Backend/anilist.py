@@ -115,6 +115,12 @@ def get_anime_by_id(anime_id: int):
     )
 
     data = response.json()
+
+    data = response.json()
+
+    if not data.get("data"):
+        return None
+
     anime = data["data"]["Media"]
 
     if anime is None:
