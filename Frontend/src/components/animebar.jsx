@@ -30,30 +30,39 @@ export default function AnimeBar({
                 style={{
                     display: "flex",
                     justifyContent: "space-between",
+                    alignItem: "center",
                     cursor: "pointer"
                 }}
                 onClick={() => setOpen(!open)}
             >
-                <div>
-                    <h3>{node.title}</h3>
-                    <p>
-                        {node.progress} / {node.episodes}
-                    </p>
-                    <span style={{
-                        display: "inline-block",
-                        padding: "2px 10px",
-                        borderRadius: "99px",
-                        fontSize: "11px",
-                        fontWeight: "600",
-                        background: node.status === "completed" ? "#d1fae5" : node.status === "watching" ? "#fef9c3" : "#f1f5f9",
-                        color: node.status === "completed" ? "#065f46" : node.status === "watching" ? "#854d0e" : "#475569"
-                    }}>
-                        {node.status}
-                    </span>
-                </div>
-                <div>
+                <h3 style={{ margin: 0, flex: 1 }}>{node.title}</h3>
+
+                <span style={{ flex: 1, textAlign: "center", color: "#555", fontSize: "14px" }}>
+                    {node.progress} / {node.episodes}
+                </span>
+
+                <button
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onProgressChange(node, node,progress +1);
+                    }}
+                    style={{
+                        padding: "6px 14px",
+                        borderRadius: "8px",
+                        border: "1px solid #d1d5db",
+                        background: "#fff",
+                        cursor: "pointer",
+                        fontSize: "13px",
+                        fontWeight: "500",
+                        marginRight: "12px"
+                    }}
+                >
+                    + Episode
+                </button>
+
+                <span>
                     {open ? "▲" : "▼"}
-                </div>
+                </span>
             </div>
 
             {/* Buttons */}
