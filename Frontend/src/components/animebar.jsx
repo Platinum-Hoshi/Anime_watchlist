@@ -1,4 +1,4 @@
-äimport { useState } from "react";
+import { useState } from "react";
 import EpisodeList from "./episodelist";
 
 function RelationSection({ relations, nodes, node }) {
