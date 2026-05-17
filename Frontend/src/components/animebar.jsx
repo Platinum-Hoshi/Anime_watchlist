@@ -1,5 +1,81 @@
-import { useState } from "react";
+äimport { useState } from "react";
 import EpisodeList from "./episodelist";
+
+function RelationSection({ relations, nodes, node }) {
+    const [openCat, setOpenCat] = useState({});
+
+    const categories = {
+        "Prequel / Sequel": ["PREQUEL", "SEQUEL"],
+        "Specials": ["SIDE_STORY", "SPIN_OFF", "OVA", "SPECISL", "MUSIC"],
+        "Andere": []
+    };
+
+    const grouped = {
+        "Prequel / Sequel": [],
+        "Specials": [],
+        "Andere": []
+    };
+
+    relations.forEach(relation => {
+        const relatedId = relation.source === node.id ? relation.target : relation.source;
+        const relatedNode = nodes.find(n => n.id === relatedId);
+        if (!relatedNode) return;
+
+        const type = relation.type?.toUpperCase();
+        if (categories["Prequel / Sequel"].includes(type)) {
+            grouped["Prequel / Sequel"].push({ relation, relatedNode });
+        } else if (categories["Specials"].includes(type)) {
+            grouped["Specials"].push({ relation, relatedNode});
+        } else {
+            grouped["Andere"].push({ relation, relatedNode});
+        }
+    });
+
+    return (
+        <div style={{ marginTop: "16px" }}>
+            {Object.entries(grouped).map(([cat, items]) => {
+                if (items.length === 0) return null;
+                const isOpen = openCat[cat];
+                return (
+                    <div key={cat} style={{ marginBottom: "8px" }}>
+                        <div
+                            onClick={() => setOpenCat(prev => ({ ...prev, [cat]: !prev[cat] }))}
+                            style={{
+                                cursor: "pointer",
+                                fontWeight: "600",
+                                fontSize: "13px",
+                                color: "#374151",
+                                padding: "4px 0",
+                                display: "flex",
+                                justifyContent: "space-between"
+                            }}
+                        >
+                            <span>{cat} ({items.length})</span>
+                            <span>{isOpen ? "▲" : "▼"}</span>
+                        </div>
+                        {isOpen && items.map(({ relation, relatedNode }, i) => (
+                            <div
+                                key={i}
+                                onClick={() => document.getElementById(relatedNode.id)?.scrollIntoView({ behavior: "smooth" })}
+                                style={{
+                                    marginBottom: "4px",
+                                    cursor: "pointer",
+                                    color: "#2563eb",
+                                    fontSize: "13px",
+                                    paddingLeft: "8px"
+                                }}
+                                onMouseEnter={e => e.currentTarget.style.textDecoration = "underline"}
+                                onMouseLeave={e => e.currentTarget.style.textDecoration = "none"}
+                            >
+                                {relation.type} → {relatedNode.title}
+                            </div>
+                        ))}
+                    </div>
+                );
+            })}
+        </div>
+    );
+}
 
 export default function AnimeBar({
     node,
@@ -66,45 +142,7 @@ export default function AnimeBar({
             </div>
 
             {/* Relations */}
-            <div style={{ marginTop: "12px" }}>
-                <h4>Relations</h4>
-                {relations.map((relation, index) => {
-                    const relatedId =
-                        relation.source === node.id
-                            ? relation.target
-                            : relation.source;
-                const relatedNode = nodes.find(
-                    n => n.id === relatedId
-                );
-                if (!relatedNode) return null;
-                return (
-                    <div
-                        key={index}
-                        style={{
-                            marginBottom: "4px",
-                            cursor: "pointer",
-                            color: "#2563eb",
-                            fontSize: "13px",
-                            textDecoration: "underline",
-                            textDecorationColor: "transparent"
-                        }}
-                        onMouseEnter={e => e.currentTarget.style.textDecorationColor = "#2563eb"}
-                        onMouseLeave={e => e.currentTarget.style.textDecorationColor = "transparent"}
-                        onClick={() => {
-                            document
-                                .getElementById(relatedNode.id)
-                                ?.scrollIntoView({
-                                    behavior: "smooth"
-                                });
-                        }}
-                    >
-                        {relation.type}
-                        {" → "}
-                        {relatedNode.title}
-                    </div>
-                );
-                })}
-            </div>
+            {open && <RelationSection relations={relations} nodes={node} />}
 
             {/*  Episodes */}
             {open && (
