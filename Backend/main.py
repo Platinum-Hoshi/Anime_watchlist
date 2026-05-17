@@ -36,16 +36,45 @@ class ProgressUpdate(BaseModel):
 
 class CreateUniverse(BaseModel):
     query: str
+    universe_name: str
 
 @app.get("/search") # Daten Lesen (wenn /serach geöffnet wird)
 def search_anime(query: str):   # Funktion bekommt einen Parameter (Anime-name)
     return get_anime(query)
 
+@app.get("/search/relations")
+def search_relations(query: str):
+    anime = get_anime(query)
+    if not anime:
+        return {"main": None, "chain": []}
+
+    chain = []
+    for edge in anime["graph"]["edges"]:
+        rel_type = edge["relation_type"]
+        if rel_type in ["SEQUEL", "PREQUEL"]:
+            node = next(
+                (n for n in anime["graph"]["nodes"] if n["id"] == edge["target"]),
+                None
+            )
+            if node:
+                chain.append({
+                    "id": node["id"],
+                    "title": node["title"] if isinstance(node["title"], str) else node["title"].get("romaji", ""),
+                    "relation_type": rel_type
+                })
+
+        return {
+            "main": {
+                "id": anime["id"],
+                "title": anime["title"]["romaji"],
+            },
+            "chain": chain
+        }
+
 @app.post("/universe/create")
 def create_universe(data: CreateUniverse):
     anime = get_anime(data.query)
-    universe_name = anime["title"]["romaji"]
-    universe_id = get_or_create_universe(universe_name)
+    universe_id = get_or_create_universe(data.universe_name)
 
     import_recrusive_universe(
         universe_id,
@@ -87,7 +116,7 @@ def import_recrusive_universe(
 
     if anime is None:
         return
-    
+
     graph = anime["graph"]
     node_map = {}
 
