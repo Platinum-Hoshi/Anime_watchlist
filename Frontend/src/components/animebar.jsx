@@ -106,7 +106,7 @@ export default function AnimeBar({
                 style={{
                     display: "flex",
                     justifyContent: "space-between",
-                    alignItem: "center",
+                    alignItems: "center",
                     cursor: "pointer"
                 }}
                 onClick={() => setOpen(!open)}
@@ -120,7 +120,7 @@ export default function AnimeBar({
                 <button
                     onClick={(e) => {
                         e.stopPropagation();
-                        onProgressChange(node, node,progress +1);
+                        onProgressChange(node, node,progress + 1);
                     }}
                     style={{
                         padding: "6px 14px",
@@ -142,7 +142,7 @@ export default function AnimeBar({
             </div>
 
             {/* Relations */}
-            {open && <RelationSection relations={relations} nodes={node} />}
+            {open && <RelationSection relations={relations} nodes={nodes} node={node} />}
 
             {/*  Episodes */}
             {open && (
