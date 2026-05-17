@@ -20,3 +20,22 @@ export async function updateProgress(nodeId, progress) {
     });
     return res.json();
 }
+
+export async function searchAnime(query) {
+    const res = await fetch(`${BASE_URL}/search?query=${encodeURIComponent(query)}`);
+    return res.json();
+}
+
+export async function searchRelations(query) {
+    const res = await fetch(`${BASE_URL}/search/relations?query=${encodeURIComponent(query)}`);
+    return res.json();
+}
+
+export async function createUniverse(query, universeName) {
+    const res = await fetch(`${BASE_URL}/universe/create`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query, universe_name: unvierseName })
+    });
+    return res.json();
+}
