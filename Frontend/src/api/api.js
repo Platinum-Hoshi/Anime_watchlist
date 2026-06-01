@@ -35,7 +35,7 @@ export async function createUniverse(query, universeName) {
     const res = await fetch(`${BASE_URL}/universe/create`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query, universe_name: unvierseName })
+        body: JSON.stringify({ query, universe_name: universeName })
     });
     return res.json();
 }
