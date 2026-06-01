@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { getUniverses, searchRelations, createUniverse } from "../api/api";
 
 export default function Home({ onOpenUniverse }) {
@@ -9,6 +9,9 @@ export default function Home({ onOpenUniverse }) {
     const [universeName, setUniverseName] = useState("");
     const [loading, setLoading] = useState(false);
     const [importing, setImporting] = useState(false);
+    const [suggestions, setSuggestions] = useState([]);
+    const [showSuggestions, setShowSuggestions] = useState(false);
+    const debounceRef = useRef(null);
 
     useEffect(() => {
         loadUniverses();
@@ -19,14 +22,27 @@ export default function Home({ onOpenUniverse }) {
         setUniverses(data.universes);
     }
 
-    async function handleSearch() {
-        if (!query.trim()) return;
+    async function handleSearch(searchQuery) {
+        if (!searchQuery.trim()) {
+            setSuggestions([]);
+            setShowSuggestions(false);
+            return;
+        }
         setLoading(true);
-        const result = await searchRelations(query);
-        setSearchResult(result);
-        setUniverseName(result.main?.title || "");
-        setShowModal(true);
+        const result = await searchRelations(searchQuery);
+        if (result.main) {
+            const all = [result.main, ...result.chain].filter(Boolean);
+            setSuggestions(all);
+            setShowSuggestions(true);
+        }
         setLoading(false);
+    }
+
+    function handleSuggestionClick(suggestion) {
+        setUniverseName(suggestion.title);
+        setSearchResult({ main: suggestion, chain: suggestions });
+        setShowSuggestions(false);
+        setShowModal(true);
     }
 
     async function handleCreate() {
@@ -40,14 +56,6 @@ export default function Home({ onOpenUniverse }) {
         loadUniverses();
     }
 
-    const suggestions = searchResult
-    ? [searchResult.main, ...searchResult.chain].filter(Boolean)
-    : [];
-
-    const filtered = suggestions.filter(s =>
-    s.title.toLowerCase().includes(universeName.toLowerCase())
-    );
-
     return (
         <div style={{ maxWidth: "900px", margin: "0 auto", padding: "24px", fontFamily: "sans-serif" }}>
         <h1>Anime Watchlist</h1>
@@ -57,8 +65,20 @@ export default function Home({ onOpenUniverse }) {
         <input
         type="text"
         value={query}
-        onChange={e => setQuery(e.target.value)}
-        onKeyDown={e => e.key === "Enter" && handleSearch()}
+        onChange={e => {
+            const val = e.target.value;
+            setQuery(val);
+            clearTimeout(debounceRef.current);
+            debounceRef.current = setTimeout(() => {
+                handleSearch(val);
+            }, 400);
+        }}
+        onKeyDown={e => {
+            if (e.key === "Enter") {
+                clearTimeout(debounceRef.current);
+                handleSearch(query);
+            }
+        }}
         placeholder="Anime suchen..."
         style={{
             flex: 1,
@@ -69,7 +89,10 @@ export default function Home({ onOpenUniverse }) {
         }}
         />
         <button
-        onClick={handleSearch}
+        onClick={() => {
+            clearTimeout(debounceRef.current);
+            handleSearch(query);
+        }}
         disabled={loading}
         style={{
             padding: "10px 20px",
@@ -85,6 +108,35 @@ export default function Home({ onOpenUniverse }) {
         {loading ? "..." : "Suchen"}
         </button>
         </div>
+
+        {showSuggestions && suggestions.length > 0 && (
+            <div style={{
+                background: "#fff",
+                border: "1px solid #e0e0e0",
+                borderRadius: "8px",
+                marginTop: "4px",
+                marginBottom: "16px",
+                boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                overflow: "hidden"
+            }}>
+                {suggestions.map((s, i) => (
+                    <div
+                        key={i}
+                        onClick={() => handleSuggestionClick(s)}
+                        style={{
+                            padding: "10px 14px",
+                            cursor: "pointer",
+                            fontSize: "14px",
+                            borderBottom: i < suggestions.length - 1 ? "1px solid #f1f5f9" : "none"
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.background = "#f8f9fa"}
+                        onMouseLeave={e => e.currentTarget.style.background = "#fff"}
+                    >
+                        {s.title}
+                    </div>
+                ))}
+            </div>
+        )}
 
         {/* Universe Liste */}
         {universes.map(u => (
@@ -144,7 +196,7 @@ export default function Home({ onOpenUniverse }) {
 
             {/* Vorschläge */}
             <div style={{ marginBottom: "16px" }}>
-            {filtered.map((s, i) => (
+            {suggestions.map((s, i) => (
                 <div
                 key={i}
                 onClick={() => setUniverseName(s.title)}
