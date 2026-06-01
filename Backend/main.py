@@ -57,16 +57,20 @@ def search_relations(query: str):
                 None
             )
             if node:
+                title = node["title"] if isinstance(node["title"], str) else (
+                    node["title"].get("english") or node["title"].get("romaji", "")
+                )
+
                 chain.append({
                     "id": node["id"],
-                    "title": node["title"] if isinstance(node["title"], str) else node["title"].get("romaji", ""),
+                    "title": title,
                     "relation_type": rel_type
                 })
 
         return {
             "main": {
                 "id": anime["id"],
-                "title": anime["title"]["romaji"],
+                "title": anime["title"]["english"] or anime["title"]["romaji"],
             },
             "chain": chain
         }
