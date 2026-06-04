@@ -26,7 +26,22 @@ export default function Universe({ id }) {
 
     return (
         <div style={{ maxWidh: "900px", margin: "0 auto", padding: "24px", fontFamily: "sans-serif" }}>
-            <h1>Universe</h1>
+            <div style={{ display: "flex", alignItems: "center", gap: "20px", marginBottom: "24px" }}>
+                {data.cover && (
+                    <img
+                        src={data.cover}
+                        alt="Universe Cover"
+                        style={{
+                            width: "80px",
+                            height: "114px",
+                            objectFit: "cover",
+                            borderRadius: "8px",
+                            boxShadow: "0 2px 8px rgba(0,0,0,0.15)"
+                        }}
+                    />
+                )}
+                <h1>Universe</h1>
+            </div>
 
             <div
                 style={{
