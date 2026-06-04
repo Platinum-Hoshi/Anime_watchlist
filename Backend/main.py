@@ -4,7 +4,8 @@ from pydantic import BaseModel
 
 from anilist import (
     get_anime,
-    get_anime_by_id
+    get_anime_by_id,
+    search_anime_list
 )
 from db import (
     init_db,
@@ -41,6 +42,10 @@ class CreateUniverse(BaseModel):
 @app.get("/search") # Daten Lesen (wenn /serach geöffnet wird)
 def search_anime(query: str):   # Funktion bekommt einen Parameter (Anime-name)
     return get_anime(query)
+
+@app.get("/search/list")
+def search_list(query: str):
+    return {"results": search_anime_list(query)}
 
 @app.get("/search/relations")
 def search_relations(query: str):
