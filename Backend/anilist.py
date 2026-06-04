@@ -153,7 +153,7 @@ def build_graph(anime):
     # main anime node
     main_node = {
         "id": anime["id"],
-        "title": anime["title"]["romaji"],
+        "title": anime["title"].get("english") or anime["title"].get("romaji", ""),
         "format": anime["format"],
         "episodes": anime["episodes"],
         "main": True
@@ -230,4 +230,3 @@ def search_anime_list(name: str):
         }
         for m in media
     ]
-
