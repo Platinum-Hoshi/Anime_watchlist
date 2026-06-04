@@ -129,15 +129,36 @@ export default function Home({ onOpenUniverse }) {
                             padding: "10px 14px",
                             cursor: "pointer",
                             fontSize: "14px",
-                            borderBottom: i < suggestions.length - 1 ? "1px solid #f1f5f9" : "none"
+                            borderBottom: i < suggestions.length - 1 ? "1px solid #f1f5f9" : "none",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "12px"
                         }}
                         onMouseEnter={e => e.currentTarget.style.background = "#f8f9fa"}
                         onMouseLeave={e => e.currentTarget.style.background = "#fff"}
                     >
-                        {s.title}
+                        {s.cover && (
+                            <img
+                                src={s.cover}
+                                alt={s.title}
+                                style={{
+                                    width: "36px",
+                                    height: "52px",
+                                    objectFit: "cover",
+                                    borderRadius: "4px",
+                                    flexShrink: 0
+                                }}
+                            />
+                        )}
+                    <div>
+                        <div style={{ fontWeight: "500" }}>{s.title}</div>
+                        <div style={{ fontSize: "12px", color: "#888", marginTop: "2px" }}>
+                            {s.format} {s.year ? `· ${s.year}` : ""}
+                        </div>
                     </div>
-                ))}
-            </div>
+                </div>
+            ))}
+        </div>
         )}
 
         {/* Universe Liste */}
