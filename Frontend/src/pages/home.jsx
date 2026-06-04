@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { getUniverses, searchRelations, createUniverse } from "../api/api";
+import { getUniverses, searchAnimeList, createUniverse } from "../api/api";
 
 export default function Home({ onOpenUniverse }) {
     const [universes, setUniverses] = useState([]);
@@ -29,18 +29,20 @@ export default function Home({ onOpenUniverse }) {
             return;
         }
         setLoading(true);
-        const result = await searchRelations(searchQuery);
-        if (result.main) {
-            const all = [result.main, ...result.chain].filter(Boolean);
-            setSuggestions(all);
+        const data = await searchAnimeList(searchQuery);
+        if (data.results?.length > 0) {
+            setSuggestions(data.results);
             setShowSuggestions(true);
+        } else {
+            setSuggestions([]):
+            setShowSuggestions(false);
         }
         setLoading(false);
     }
 
     function handleSuggestionClick(suggestion) {
         setUniverseName(suggestion.title);
-        setSearchResult({ main: suggestion, chain: suggestions });
+        setQuery(suggestion.title)
         setShowSuggestions(false);
         setShowModal(true);
     }
