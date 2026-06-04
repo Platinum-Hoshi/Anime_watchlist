@@ -107,7 +107,7 @@ def add_anime_node(universe_id, anime):
     """, (
         universe_id,
         anime["id"],
-        anime["title"]["romaji"],
+        anime["title"].get("english") or anime["title"].get("romaji", ""),
         anime["format"],
         anime.get("cover"),
         anime.get("banner"),
