@@ -120,24 +120,38 @@ export default function AnimeBar({
                     {node.progress} / {node.episodes}
                 </span>
 
-                <button
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        onProgressChange(node, node.progress + 1);
-                    }}
-                    style={{
+                {node.episodes && node.progress >= node.episodes ? (
+                    <span style={{
                         padding: "6px 14px",
                         borderRadius: "8px",
-                        border: "1px solid #d1d5db",
-                        background: "#fff",
-                        cursor: "pointer",
+                        background: "#d1fae5",
+                        color: "#065f46",
                         fontSize: "13px",
-                        fontWeight: "500",
+                        fontWeight: "600",
                         marginRight: "12px"
-                    }}
-                >
-                    + Episode
-                </button>
+                    }}>
+                        ✓ Fertig
+                    </span>
+                ) : (
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onProgressChange(node, node.progress + 1);
+                        }}
+                        style={{
+                            padding: "6px 14px",
+                            borderRadius: "8px",
+                            border: "1px solid #d1d5db",
+                            background: "#fff",
+                            cursor: "pointer",
+                            fontSize: "13px",
+                            fontWeight: "500",
+                            marginRight: "12px"
+                        }}
+                    >
+                        + Episode
+                    </button>
+                )}
 
                 <span>
                     {open ? "▲" : "▼"}
