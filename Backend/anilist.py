@@ -116,8 +116,6 @@ def get_anime_by_id(anime_id: int):
 
     data = response.json()
 
-    data = response.json()
-
     if not data.get("data"):
         return None
 
@@ -189,3 +187,46 @@ def build_graph(anime):
         "nodes": nodes,
         "edges": edges
     }
+
+def search_anime_list(name: str):
+    query = """
+    query ($search: String) {
+        Page(page: 1, perPage: 5) {
+            media(search: $search, type: Anime) {
+                id
+                title {
+                    romaji
+                    english
+                }
+                coverImage {
+                    large
+                }
+                format
+                seasonYear
+            }
+        }
+    }
+    """
+
+    response = requests.post(
+        ANILIST_URL,
+        json={"query": query, "variables": {"search": name}}
+    )
+
+    data = response.json()
+
+    if not data.get("data"):
+        return[]
+    
+    media = data["data"]["Page"]["media"]
+
+    return [
+        {
+            "id": m["id"],
+            "title": m["title"]["english"] or m["title"]["romaji"],
+            "cover": (m.get("coverImage") or {}).get("large"),
+            "format": m["format"],
+            "year": m["seasonYear"]
+        }
+        for m in media
+    ]
