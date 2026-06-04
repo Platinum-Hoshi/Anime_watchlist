@@ -192,7 +192,7 @@ def search_anime_list(name: str):
     query = """
     query ($search: String) {
         Page(page: 1, perPage: 5) {
-            media(search: $search, type: Anime) {
+            media(search: $search, type: ANIME) {
                 id
                 title {
                     romaji
@@ -231,5 +231,3 @@ def search_anime_list(name: str):
         for m in media
     ]
 
-    data = response.json()
-    print("ANILIST RESPONSE:", data)
