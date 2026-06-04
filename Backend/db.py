@@ -67,7 +67,7 @@ def init_db():
     conn.commit()   # schreibt Änderungen in die Datei
     conn.close()    # schliesst die DB sauber
 
-def get_or_create_universe(name):
+def get_or_create_universe(name, cover_image=None):
     conn = get_conn()
     c = conn.cursor()
 
@@ -234,6 +234,10 @@ def get_universe(universe_id):
             "target": row[1],
             "type": row[2]
         })
+
+    c.execute("SELECT cover_image FROM universe WHERE id = ?", (universe_id,))
+    cover_row = c.fetchone()
+    cover = cover_row[0] if cover_row else None
 
     conn.close()
 
