@@ -205,8 +205,13 @@ def get_universe(universe_id):
 
     nodes = []
 
+    EXCLUDE_FORMATS = {"MANGA", "NOVEL", "ONE_SHOT", "MUSIC", "MANHWA", "MANHUA"}
+
     for row in rows:
         status = row[5]
+        fmt = row[2]
+        if fmt in EXCLUDE_FORMATS:
+            continue
         nodes.append({
             "id": row[0],
             "title": row[1],
