@@ -235,7 +235,7 @@ def get_universe(universe_id):
             "type": row[2]
         })
 
-    c.execute("SELECT cover_image FROM universe WHERE id = ?", (universe_id,))
+    c.execute("SELECT cover_image FROM universes WHERE id = ?", (universe_id,))
     cover_row = c.fetchone()
     cover = cover_row[0] if cover_row else None
 
