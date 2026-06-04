@@ -192,6 +192,7 @@ export default function Home({ onOpenUniverse }) {
                 )}
                 <h3 style={{ margin: 0 }}>{u.name}</h3>
             </div>
+            </div>
         ))}
 
         {/* Modal */}
