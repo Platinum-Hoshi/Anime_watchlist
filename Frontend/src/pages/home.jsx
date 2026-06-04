@@ -34,7 +34,7 @@ export default function Home({ onOpenUniverse }) {
             setSuggestions(data.results);
             setShowSuggestions(true);
         } else {
-            setSuggestions([]):
+            setSuggestions([]);
             setShowSuggestions(false);
         }
         setLoading(false);
