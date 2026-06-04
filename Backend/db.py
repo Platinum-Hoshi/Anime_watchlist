@@ -78,7 +78,7 @@ def get_or_create_universe(name):
         conn.close()
         return row[0]
 
-    c.execute("INSERT INTO universes (name) VALUES (?)", (name,))
+    c.execute("INSERT INTO universes (name, cover_image) VALUES (?, ?)", (name, cover_image))
     conn.commit()
 
     universe_id = c.lastrowid
@@ -241,7 +241,8 @@ def get_universe(universe_id):
     return {
         "nodes": nodes,
         "edges": edges,
-        "stats": stats
+        "stats": stats,
+        "cover": cover
     }
 
 def get_node_by_anime_id(anime_id):
@@ -276,7 +277,7 @@ def get_all_universes():
     c = conn.cursor()
 
     c.execute("""
-    SELECT id, name, main_anime_id
+    SELECT id, name, main_anime_id, cover_image
     FROM universes
     """)
 
@@ -287,7 +288,8 @@ def get_all_universes():
         {
             "id": r[0],
             "name": r[1],
-            "main_anime_id": r[2]
+            "main_anime_id": r[2],
+            "cover": r[3]
         }
         for r in rows
     ]
