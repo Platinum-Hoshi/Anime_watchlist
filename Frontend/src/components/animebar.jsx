@@ -120,7 +120,7 @@ export default function AnimeBar({
                 <button
                     onClick={(e) => {
                         e.stopPropagation();
-                        onProgressChange(node, node,progress + 1);
+                        onProgressChange(node, node.progress + 1);
                     }}
                     style={{
                         padding: "6px 14px",
