@@ -17,7 +17,8 @@ def init_db():
     CREATE TABLE IF NOT EXISTS universes (  
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
-        main_anime_id INTEGER
+        main_anime_id INTEGER,
+        cover_image TEXT
     )
     """)
     # -Erstellt die Tabelle watchlist, wenn sie noch nicht existiert90285465898917911
