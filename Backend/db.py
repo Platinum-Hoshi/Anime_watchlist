@@ -135,6 +135,15 @@ def add_relation(from_node_id, to_node_id, relation_type):
     c = conn.cursor()
 
     c.execute("""
+    SELECT id FROM relations
+    WHERE from_node_id = ? AND to_node_id = ? AND relation_type = ?
+    """, (from_node_id, to_node_id, relation_type))
+
+    if c.fetchone():
+        conn.close()
+        return
+    
+    c.execute("""
     INSERT INTO relations (from_node_id, to_node_id, relation_type)
     VALUES (?, ?, ?)
     """, (from_node_id, to_node_id, relation_type))
