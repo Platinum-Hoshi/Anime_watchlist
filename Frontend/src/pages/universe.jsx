@@ -3,6 +3,51 @@ import { getUniverse, updateProgress } from "../api/api";
 import Graph from "../components/graph";
 import AnimeBar from "../components/animebar";
 
+function SpecialGroup({ format, nodes, allNodes, edges, onProgressChange }) {
+    const [open, setOpen] = useState(false);
+
+    return (
+        <div style={{
+            border: "1px solid #e0e0e0",
+            borderRadius: "12px",
+            marginBottom: "10px",
+            background: "#fff",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+            overflow: "hidden"
+        }}>
+            <div
+                onClick={() => setOpen(!open)}
+                style={{
+                    padding: "16px",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    cursor: "pointer"
+                }}
+            >
+                <span style={{ fontWeight: "600", fontSize: "15px" }}>
+                    {format} ({nodes.length})
+                </span>
+                <span>{open ? "▲" : "▼"}</span>
+            </div>
+
+            {open && (
+                <div style={{ padding: "0 12px 12px 12px" }}>
+                    {nodes.map(node => (
+                        <AnimeBar
+                            key={node.id}
+                            node={node}
+                            nodes={allNodes}
+                            edges={edges}
+                            onProgressChange={onProgressChange}
+                        />
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+}
+
 export default function Universe({ id }) {
     const [data, setData] = useState(null);
     useEffect(() => {
@@ -86,11 +131,27 @@ export default function Universe({ id }) {
 
             {/* Bars */}
             <div>
-                {data.nodes.map(node => (
+                {/* Hauptstory */}
+                {data.main_nodes.map(node => (
                     <AnimeBar
                         key={node.id}
                         node={node}
                         nodes={data.nodes}
+                        edges={data.edges}
+                        onProgressChange={async (node, progress) => {
+                            await updateProgress(node.id, progress);
+                            loadUniverse();
+                        }}
+                    />
+                ))}
+
+                {/* Specials gruppiert */}
+                {Object.entries(data.specials_grouped).map(([format, nodes]) => (
+                    <SpecialGroup
+                        key={format}
+                        format={format}
+                        nodes={nodes}
+                        allNodes={data.nodes}
                         edges={data.edges}
                         onProgressChange={async (node, progress) => {
                             await updateProgress(node.id, progress);
