@@ -39,3 +39,8 @@ export async function createUniverse(query, universeName) {
     });
     return res.json();
 }
+
+export async function searchAnimeList(query) {
+    const res = await fetch(`${BASE_URL}/search/list?query=${encodeURIComponent(query)}`);
+    return res.json();
+}
