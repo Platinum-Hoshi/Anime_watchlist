@@ -176,7 +176,21 @@ export default function Home({ onOpenUniverse }) {
                 boxShadow: "0 1px 3px rgba(0,0,0,0.06)"
             }}
             >
-            <h3 style={{ margin: 0 }}>{u.name}</h3>
+            <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+                {u.cover && (
+                    <img
+                        src={u.cover}
+                        alt={u.name}
+                        style={{
+                            width: "48px",
+                            height: "68px",
+                            objectFit: "cover",
+                            borderRadius: "6px",
+                            flexShrink: 0
+                        }}
+                    />
+                )}
+                <h3 style={{ margin: 0 }}>{u.name}</h3>
             </div>
         ))}
 
