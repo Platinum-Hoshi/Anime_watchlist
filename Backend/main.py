@@ -83,7 +83,7 @@ def search_relations(query: str):
 @app.post("/universe/create")
 def create_universe(data: CreateUniverse):
     anime = get_anime(data.query)
-    universe_id = get_or_create_universe(data.universe_name)
+    universe_id = get_or_create_universe(data.universe_name, anime.get("cover"))
 
     import_recrusive_universe(
         universe_id,
