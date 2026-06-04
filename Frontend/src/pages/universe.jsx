@@ -69,6 +69,8 @@ export default function Universe({ id }) {
         return <div>Loading...</div>;
     }
 
+    const EXCLUDE_FORMATS = ["MANGA", "NOVEL", "ONE_SHOT", "MUSIC", "MANHWA", "MANHUA"];
+
     return (
         <div style={{ maxWidth: "900px", margin: "0 auto", padding: "24px", fontFamily: "sans-serif" }}>            <h1 style={{ margin: "0 0 16px 0" }}>Universe</h1>
 
@@ -132,7 +134,7 @@ export default function Universe({ id }) {
             {/* Bars */}
             <div>
                 {/* Hauptstory */}
-                {data.main_nodes.map(node => (
+                {data.main_nodes.filter(n => !EXCLUDE_FORMATS.includes(n.format)).map(node => (
                     <AnimeBar
                         key={node.id}
                         node={node}
@@ -146,7 +148,9 @@ export default function Universe({ id }) {
                 ))}
 
                 {/* Specials gruppiert */}
-                {Object.entries(data.specials_grouped).map(([format, nodes]) => (
+                {Object.entries(data.specials_grouped)
+                    .filter(([format]) => !EXCLUDE_FORMATS.includes(format))
+                    .map(([format, nodes]) => (
                     <SpecialGroup
                         key={format}
                         format={format}
