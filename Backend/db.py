@@ -250,12 +250,39 @@ def get_universe(universe_id):
 
     conn.close()
 
+    main_node_ids = set()
+    for edge in edges:
+        if edge["type"] in ("SEQUEL", "PREQUEL"):
+            main_node_ids.add(edge["source"])
+            main_node_ids.add(edge["target"])
+
+    all_connected_ids = set()
+    for edge in edges:
+        all_connected_ids.add(edge["source"])
+        all_connected_ids.add(edge["target"])
+
+    for node in nodes:
+        if node["id"] not in all_connected_ids:
+            main_node_ids.add(node["id"])
+
+    main_nodes = [n for n in nodes if n["id"] in main_node_ids]
+    special_nodes = [n for n in nodes if n["id"] not in main_node_ids]
+
+    specials_grouped = {}
+    for node in special_nodes:
+        fmt = node["format"] or "OTHER"
+        if fmt not in specials_grouped:
+            specials_grouped[fmt] = []
+        specials_grouped[fmt].append(node)
+
     stats = calculate_universe_stats(nodes)
     return {
         "nodes": nodes,
         "edges": edges,
         "stats": stats,
-        "cover": cover
+        "cover": cover,
+        "main_nodes": main_nodes,
+        "specials_grouped": specials_grouped
     }
 
 def get_node_by_anime_id(anime_id):
