@@ -111,7 +111,10 @@ export default function AnimeBar({
                 }}
                 onClick={() => setOpen(!open)}
             >
-                <h3 style={{ margin: 0, flex: 1 }}>{node.title}</h3>
+                <div style={{ flex: 1 }}>
+                    <h3 style={{ margin: 0 }}>{node.title}</h3>
+                    <span style={{ fontSize: "12px", color: "#888" }}>{node.format}</span>
+                </div>
 
                 <span style={{ flex: 1, textAlign: "center", color: "#555", fontSize: "14px" }}>
                     {node.progress} / {node.episodes}
