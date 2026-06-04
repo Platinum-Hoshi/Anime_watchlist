@@ -230,3 +230,6 @@ def search_anime_list(name: str):
         }
         for m in media
     ]
+
+    data = response.json()
+    print("ANILIST RESPONSE:", data)
