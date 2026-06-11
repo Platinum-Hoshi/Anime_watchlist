@@ -143,6 +143,9 @@ def import_recrusive_universe(
         node_map[node["id"]] = node_id
 
     # relations speichern
+    SKIP_RELATIONS = {"CHARACTER", "OTHER", "CONTAINS", "COMPILATION"}
+    EXECLUDE_FORMATS = {"MANGA", "NOVEL", "ONE_SHOT", "MUSIC", "MANHWA", "MANHUA"}
+
     for edge in graph["edges"]:
         source_id = node_map.get(edge["source"])
         target_id = node_map.get(edge["target"])
@@ -155,6 +158,18 @@ def import_recrusive_universe(
             )
 
         # recursive crawl
+        if edge["relation_type"] in SKIP_RELATIONS:
+            continue
+
+        target_node = next(
+            (n for n in graph["nodes"] if n["id"] == edge["target"]),
+            None
+        )
+        target_format = (target_node or {}).get("format") or ""
+
+        if target_format.upper() in EXECLUDE_FORMATS:
+            continue
+
         import_recrusive_universe(
             universe_id,
             edge["target"],
