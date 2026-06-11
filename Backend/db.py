@@ -242,12 +242,15 @@ def get_universe(universe_id):
     relations_rows = c.fetchall()
     edges = []
 
+    node_ids = {n["id"] for n in nodes}
+
     for row in relations_rows:
-        edges.append({
-            "source": row[0],
-            "target": row[1],
-            "type": row[2]
-        })
+        if row[0] in node_ids and row[1] in node_ids:
+            edges.append({
+                "source": row[0],
+                "target": row[1],
+                "type": row[2]
+            })
 
     c.execute("SELECT cover_image FROM universes WHERE id = ?", (universe_id,))
     cover_row = c.fetchone()
