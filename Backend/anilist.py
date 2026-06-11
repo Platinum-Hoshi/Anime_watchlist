@@ -156,6 +156,7 @@ def build_graph(anime):
         "title": anime["title"].get("english") or anime["title"].get("romaji", ""),
         "format": anime["format"],
         "episodes": anime["episodes"],
+        "cover": (anime.get("coverImage") or {}).get("large"),
         "main": True
     }
 
@@ -171,6 +172,7 @@ def build_graph(anime):
             "title": node["title"],
             "format": node["format"],
             "episodes": node["episodes"],
+            "cover": None,
             "main": False
         }
 
