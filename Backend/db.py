@@ -414,3 +414,16 @@ def get_node(node_id):
         "progress": row[4],
         "status": row[5]
     }
+
+def update_node_cover(anime_id, cover):
+    conn = get_conn()
+    c = conn.cursor()
+
+    c.execute("""
+    UPDATE anime_nodes
+    SET cover_image = ?
+    WHERE anime_id = ? AND cover_image IS NULL
+    """, (cover, anime_id))
+
+    conn.commit()
+    conn.close()
