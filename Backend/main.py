@@ -16,7 +16,8 @@ from db import (
     get_universe,
     get_node,
     get_node_by_anime_id,
-    get_all_universes
+    get_all_universes,
+    update_node_cover
 )
 
 app = FastAPI() # API gestartet
@@ -125,6 +126,8 @@ def import_recrusive_universe(
 
     if anime is None:
         return
+    
+    update_node_cover(anime_id, anime.get("cover"))
 
     graph = anime["graph"]
     node_map = {}
