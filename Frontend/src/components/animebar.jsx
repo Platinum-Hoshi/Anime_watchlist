@@ -111,9 +111,24 @@ export default function AnimeBar({
                 }}
                 onClick={() => setOpen(!open)}
             >
-                <div style={{ flex: 1 }}>
-                    <h3 style={{ margin: 0 }}>{node.title}</h3>
-                    <span style={{ fontSize: "12px", color: "#888" }}>{node.format}</span>
+                <div style={{ display: "flex", alignItems: "center", gap: "12px", flex: 1 }}>
+                    {node.cover && (
+                        <img
+                            src={node.cover}
+                            alt={node.title}
+                            style={{
+                                width: "36px",
+                                height: "52px",
+                                objectFit: "cover",
+                                borderRadius: "4px",
+                                flexShrink: 0
+                            }}
+                        />
+                    )}
+                    <div>
+                        <h3 style={{ margin: 0 }}>{node.title}</h3>
+                        <span style={{ fontSize: "12px", color: "#888" }}>{node.format}</span>
+                    </div>
                 </div>
 
                 <span style={{ flex: 1, textAlign: "center", color: "#555", fontSize: "14px" }}>
