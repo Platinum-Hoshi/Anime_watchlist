@@ -134,10 +134,12 @@ def import_recrusive_universe(
         node_id = add_anime_node(universe_id, {
             "id": node["id"],
             "title": {
+                "english": node["title"] if isinstance(node["title"], str) else node["title"].get("english", ""),
                 "romaji": node["title"] if isinstance(node["title"], str) else node["title"].get("romaji", "")
             },
             "format": node["format"],
-            "episodes": node["episodes"]
+            "episodes": node["episodes"],
+            "cover": node.get("cover")
         })
 
         node_map[node["id"]] = node_id
