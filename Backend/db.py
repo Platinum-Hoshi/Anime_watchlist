@@ -194,7 +194,8 @@ def get_universe(universe_id):
         anime_nodes.format,
         anime_nodes.total_episodes,
         progress.watched_episodes,
-        progress.status
+        progress.status,
+        anime_nodes.cover_image
     FROM anime_nodes
     LEFT JOIN progress
     ON anime_nodes.id = progress.node_id
@@ -219,7 +220,8 @@ def get_universe(universe_id):
             "episodes": row[3],
             "progress": row[4],
             "status": status,
-            "color": get_status_color(status)
+            "color": get_status_color(status),
+            "cover": row[6]
         })
 
     # relations
