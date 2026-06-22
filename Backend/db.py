@@ -332,17 +332,59 @@ def get_all_universes():
     """)
 
     rows = c.fetchall()
-    conn.close()
+    
+    universes = []
+    for r in rows:
+        universe_id = r[0]
 
-    return [
-        {
+        c.execute("""
+        SELECT
+            anime_nodes.total_episodes,
+            progress.watched_episodes,
+            progress.status
+        FROM anime_nodes
+        LEFT JOIN progress ON anime_nodes.id = progress.node_id
+        WHERE anime_nodes.universe_id = ?
+        """, (universe_id,))
+
+        node_rows = c.fetchall()
+
+        total = 0
+        watched = 0
+        completed = 0
+        watching = 0
+        planned = 0
+
+        for n in node_rows:
+            total += n[0] or 0
+            watched += n[1] or 0
+            if n[2] == "completed":
+                completed += 1
+            elif n[2] == "watching":
+                watching += 1
+            else:
+                planned += 1
+
+        completion = round((watched / total) * 100, 1) if total > 0 else 0
+
+        if watching > 0:
+            overall_status = "watching"
+        elif completed > 0 and planned == 0 and watching == 0:
+            overall_status = "completed"
+        else:
+            overall_status = "planned"
+
+        universes.append({
             "id": r[0],
             "name": r[1],
             "main_anime_id": r[2],
-            "cover": r[3]
-        }
-        for r in rows
-    ]
+            "cover": r[3],
+            "completion": completion,
+            "status": overall_status
+        })
+
+    conn.close()
+    return universes
 
 def calculate_universe_stats(nodes):
     total_episodes = 0
