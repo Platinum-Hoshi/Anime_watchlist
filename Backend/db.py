@@ -427,3 +427,31 @@ def update_node_cover(anime_id, cover):
 
     conn.commit()
     conn.close()
+
+def delete_universe(universe_id):
+    conn = get_conn()
+    c = conn.cursor()
+
+    c.execute("""
+    DELETE FROM progress
+    WHERE node_id IN (
+        SELECT id FROM anime_nodes WHERE universe_id = ?
+    )
+    """, (universe_id,))
+
+    c.execute("""
+    DELETE FROM relations
+    WHERE from_node_id IN (
+        SELECT id FROM anime_nodes WHERE universe_id = ?
+    )
+    OR to_node_id IN (
+        SELECT id FROM anime_nodes WHERE universe_id = ?
+    )
+    """, (universe_id, universe_id))
+
+    c.execute("DELETE FROM anime_nodes WHERE universe_id = ?", (universe_id,))
+
+    c.execute("DELETE FROM universes WHERE id = ?", (universe_id,))
+
+    conn.commit()
+    conn.close()
