@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { getUniverses, searchAnimeList, createUniverse, deleteUniverse } from "../api/api";
+import { getUniverses, searchAnimeList, createUniverse, deleteUniverse, checkAnimeExists } from "../api/api";
 
 export default function Home({ onOpenUniverse }) {
     const [universes, setUniverses] = useState([]);
@@ -12,6 +12,7 @@ export default function Home({ onOpenUniverse }) {
     const [suggestions, setSuggestions] = useState([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
     const debounceRef = useRef(null);
+    const [existsWarning, setExistsWarning] = useState(null);
 
     useEffect(() => {
         loadUniverses();
@@ -40,10 +41,18 @@ export default function Home({ onOpenUniverse }) {
         setLoading(false);
     }
 
-    function handleSuggestionClick(suggestion) {
+    async function handleSuggestionClick(suggestion) {
         setUniverseName(suggestion.title);
-        setQuery(suggestion.title)
+        setQuery(suggestion.title);
         setShowSuggestions(false);
+
+        const result = await checkAnimeExists(suggestion.id);
+        if (result.exists) {
+            setExistsWarning(result.universe);
+        } else {
+            setExistsWarning(null);
+        }
+
         setShowModal(true);
     }
 
@@ -242,6 +251,35 @@ export default function Home({ onOpenUniverse }) {
                 boxShadow: "0 8px 32px rgba(0,0,0,0.15)"
             }}>
             <h2 style={{ marginTop: 0 }}>Universe benennen</h2>
+
+            {existsWarning && (
+                <div style={{
+                    padding: "12px 16px",
+                    borderRadius: "8px",
+                    background: "#fef9c3",
+                    border: "1px solid #fde047",
+                    marginBottom: "16px",
+                    fontSize: "13px",
+                    color: "#854d0e"
+                }}>
+                    Dieser Anime ist bereits im Universe <strong>"{existsWarning.universe_name}"</strong> vorhanden.
+                    <div
+                        onClick={() => {
+                            setShowModal(false);
+                            onOpenUniverse(existsWarning.universe_id);
+                        }}
+                        style={{
+                            marginTop: "8px",
+                            color: "#2563eb",
+                            cursor: "pointer",
+                            textDecoration: "underline",
+                            fontSize: "13px"
+                        }}
+                    >
+                        → Zum Universe gehen
+                    </div>
+                </div>
+            )}
 
             <input
             type="text"
