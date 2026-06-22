@@ -177,7 +177,7 @@ export default function Home({ onOpenUniverse }) {
             style={{
                 padding: "16px",
                 marginBottom: "10px",
-                background: u.status === "completed" ? "#f0fdf4" : "#fff",
+                background: u.status === "completed" ? "#d1fae5" : "#fff",
                 border: u.status === "completed" ? "1px solid #6ee7b7" : "1px solid #e0e0e0",
                 borderRadius: "12px",
                 boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
