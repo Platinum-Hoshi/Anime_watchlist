@@ -458,7 +458,7 @@ def delete_universe(universe_id):
 
 def find_anime_in_universes(anime_id):
     conn = get_conn()
-    c = conn.cursor
+    c = conn.cursor()
 
     c.execute("""
     SELECT
