@@ -276,7 +276,7 @@ export default function Home({ onOpenUniverse }) {
                             fontSize: "13px"
                         }}
                     >
-                        → Zum Universe gehen
+                        <strong>"{existsWarning.universe_name}"</strong>
                     </div>
                 </div>
             )}
