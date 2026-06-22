@@ -321,36 +321,36 @@ export default function Home({ onOpenUniverse }) {
             </div>
 
             <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
-            <button
-            onClick={() => setShowModal(false)}
-            style={{
-                padding: "8px 16px",
-                borderRadius: "8px",
-                border: "1px solid #d1d5db",
-                background: "#fff",
-                cursor: "pointer",
-                fontSize: "13px"
-            }}
-            >
-            Abbrechen
-            </button>
-            <button
-            onClick={handleCreate}
-            disabled={importing}
-            style={{
-                padding: "8px 16px",
-                borderRadius: "8px",
-                border: "none",
-                background: "#2563eb",
-                color: "#fff",
-                cursor: "pointer",
-                fontWeight: "600",
-                fontSize: "13px"
-            }}
-            >
-            {importing ? "Importiere..." : "Universe erstellen"}
-            </button>
+                <button onClick={() => setShowModal(false)}
+                    style={{
+                        padding: "8px 16px",
+                        borderRadius: "8px",
+                        border: "1px solid #d1d5db",
+                        background: "#fff",
+                        cursor: "pointer",
+                        fontSize: "13px"
+                    }}
+                >
+                    Abbrechen
+                </button>
+                {!existsWarning && (
+                    <button onClick={handleCreate} disabled={importing}
+                        style={{
+                            padding: "8px 16px",
+                            borderRadius: "8px",
+                            border: "none",
+                            background: "#2563eb",
+                            color: "#fff",
+                            cursor: "pointer",
+                            fontWeight: "600",
+                            fontSize: "13px"
+                        }}
+                    >
+                        {importing ? "Importiere..." : "Universe erstellen"}
+                    </button>
+                )}
             </div>
+
             </div>
             </div>
         )}
