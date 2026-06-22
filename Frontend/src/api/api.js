@@ -51,3 +51,8 @@ export async function deleteUniverse(id) {
     });
     return res.json
 }
+
+export async function checkAnimeExists(animeId) {
+    const res = await fetch(`${BASE_URL}/search/exists?anime_id=${animeId}`);
+    return res.json();
+}
