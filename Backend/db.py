@@ -455,3 +455,34 @@ def delete_universe(universe_id):
 
     conn.commit()
     conn.close()
+
+def find_anime_in_universes(anime_id):
+    conn = get_conn()
+    c = conn.cursor
+
+    c.execute("""
+    SELECT
+        universes.id,
+        universes.name,
+        relations.relation_type
+    FROM anime_nodes
+    JOIN universes ON anime_nodes.universe_id = universes.id
+    LEFT JOIN relations ON (
+        relations.from_node_id = anime_nodes.id
+        OR relations.to_node_id = anime_nodes.id
+    )
+    WHERE anime_nodes.anime_id = ?
+    LIMIT 1
+    """, (anime_id,))
+
+    row = c.fetchone()
+    conn.close()
+
+    if not row:
+        return None
+    
+    return {
+        "universe_id": row[0],
+        "universe_name": row[1],
+        "relation_type":  row[2]
+    }
