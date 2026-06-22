@@ -17,7 +17,8 @@ from db import (
     get_node,
     get_node_by_anime_id,
     get_all_universes,
-    update_node_cover
+    update_node_cover,
+    delete_universe
 )
 
 app = FastAPI() # API gestartet
@@ -190,3 +191,8 @@ def universes():
 @app.get("/nodes/{node_id}")
 def node(node_id: int):
     return get_node(node_id)
+
+@app.delete("/universe/{universe_id}")
+def remove_universe(universe_id: int):
+    delete_universe(universe_id)
+    return {"message": "universe deleted", "universe_id": universe_id}
