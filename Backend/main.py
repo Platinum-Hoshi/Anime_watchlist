@@ -18,7 +18,8 @@ from db import (
     get_node_by_anime_id,
     get_all_universes,
     update_node_cover,
-    delete_universe
+    delete_universe,
+    find_anime_in_universes
 )
 
 app = FastAPI() # API gestartet
@@ -196,3 +197,8 @@ def node(node_id: int):
 def remove_universe(universe_id: int):
     delete_universe(universe_id)
     return {"message": "universe deleted", "universe_id": universe_id}
+
+@app.get("/search/exists")
+def check_anime_exists(anime_id: int):
+    result = find_anime_in_universes(anime_id)
+    return {"exists": result is not None, "universe": result}
