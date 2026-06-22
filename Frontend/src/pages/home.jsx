@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { getUniverses, searchAnimeList, createUniverse } from "../api/api";
+import { getUniverses, searchAnimeList, createUniverse, deleteUniverse } from "../api/api";
 
 export default function Home({ onOpenUniverse }) {
     const [universes, setUniverses] = useState([]);
@@ -163,20 +163,24 @@ export default function Home({ onOpenUniverse }) {
 
         {/* Universe Liste */}
         {universes.map(u => (
-            <div
+        <div
             key={u.id}
-            onClick={() => onOpenUniverse(u.id)}
             style={{
                 padding: "16px",
                 marginBottom: "10px",
                 background: "#fff",
                 border: "1px solid #e0e0e0",
                 borderRadius: "12px",
-                cursor: "pointer",
-                boxShadow: "0 1px 3px rgba(0,0,0,0.06)"
+                boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between"
             }}
+        >
+            <div
+                onClick={() => onOpenUniverse(u.id)}
+                style={{ display: "flex", alignItems: "center", gap: "16px", flex: 1, cursor: "pointer" }}
             >
-            <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
                 {u.cover && (
                     <img
                         src={u.cover}
@@ -192,7 +196,30 @@ export default function Home({ onOpenUniverse }) {
                 )}
                 <h3 style={{ margin: 0 }}>{u.name}</h3>
             </div>
-            </div>
+
+            <button
+                onClick={async (e) => {
+                    e.stopPropagation();
+                    if (confirm(`"${u.name}" wirklich löschen?`)) {
+                        await deleteUniverse(u.id);
+                        loadUniverses();
+                    }
+                }}
+                style={{
+                    padding: "6px 12px",
+                    borderRadius: "8px",
+                    border: "1px solid #fca5a5",
+                    background: "#fff",
+                    color: "#ef4444",
+                    cursor: "pointer",
+                    fontSize: "13px",
+                    fontWeight: "500",
+                    flexShrink: 0
+                }}
+            >
+                Löschen
+            </button>
+        </div>
         ))}
 
         {/* Modal */}
