@@ -44,3 +44,10 @@ export async function searchAnimeList(query) {
     const res = await fetch(`${BASE_URL}/search/list?query=${encodeURIComponent(query)}`);
     return res.json();
 }
+
+export async function deleteUniverse(id) {
+    const res = await fetch(`${BASE_URL}/universe/${id}`, {
+        method: "DELETE"
+    });
+    return res.json
+}
