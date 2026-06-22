@@ -208,19 +208,23 @@ export default function Home({ onOpenUniverse }) {
             </div>
 
             {/* Status + Prozent */}
-            <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: "6px" }}>
+            <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: "10px" }}>
                 <span style={{
                     display: "inline-block",
-                    padding: "2px 10px",
-                    borderRadius: "99px",
-                    fontSize: "11px",
-                    fontWeight: "600",
+                    padding: "6px 12px",
+                    borderRadius: "8px",
+                    fontSize: "13px",
+                    fontWeight: "500",
+                    border: "1px solid",
+                    borderColor: u.status === "completed" ? "#6ee7b7" : u.status === "watching" ? "#fde047" : "#d1d5db",
                     background: u.status === "completed" ? "#d1fae5" : u.status === "watching" ? "#fef9c3" : "#f1f5f9",
                     color: u.status === "completed" ? "#065f46" : u.status === "watching" ? "#854d0e" : "#475569"
                 }}>
                     {u.status === "completed" ? "Fertig" : u.status === "watching" ? "Am Schauen" : "Geplant"}
                 </span>
-                <span style={{ fontSize: "13px", color: "#888" }}>{u.completion}%</span>
+                <span style={{ fontSize: "13px", color: "#888", fontWeight: "500" }}>
+                    {u.completion}%
+                </span>
             </div>
 
             {/* Delete */}
