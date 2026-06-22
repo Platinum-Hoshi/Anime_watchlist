@@ -203,7 +203,25 @@ export default function Home({ onOpenUniverse }) {
                         }}
                     />
                 )}
-                <h3 style={{ margin: 0 }}>{u.name}</h3>
+                <div>
+                    <h3 style={{ margin: "0 0 6px 0" }}>{u.name}</h3>
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                        <span style={{
+                            display: "inline-block",
+                            padding: "2px 10px",
+                            borderRadius: "99px",
+                            fontSize: "11px",
+                            fontWeight: "600",
+                            background: u.status === "completed" ? "#d1fae5" : u.status === "watching" ? "#fef9c3" : "#f1f5f9",
+                            color: u.status === "completed" ? "#065f46" : u.status === "watching" ? "#854d0e" : "#475569"
+                        }}>
+                            {u.status === "completed" ? "Fertig" : u.status === "watching" ? "Am Schauen" : "Geplant"}
+                        </span>
+                        <span style={{ fontSize: "13px", color: "#888" }}>
+                            {u.completion}%
+                        </span>
+                    </div>
+                </div>
             </div>
 
             <button
