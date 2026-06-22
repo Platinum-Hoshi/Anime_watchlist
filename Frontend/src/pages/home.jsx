@@ -281,44 +281,47 @@ export default function Home({ onOpenUniverse }) {
                 </div>
             )}
 
-            <input
-            type="text"
-            value={universeName}
-            onChange={e => setUniverseName(e.target.value)}
-            placeholder="Universe Name..."
-            style={{
-                width: "100%",
-                padding: "10px 14px",
-                borderRadius: "8px",
-                border: "1px solid #d1d5db",
-                fontSize: "14px",
-                marginBottom: "12px",
-                boxSizing: "border-box"
-            }}
-            />
+            {!existsWarning && (
+                <>
+                    <input
+                        type="text"
+                        value={universeName}
+                        onChange={e => setUniverseName(e.target.value)}
+                        placeholder="Universe Name..."
+                        style={{
+                            width: "100%",
+                            padding: "10px 14px",
+                            borderRadius: "8px",
+                            border: "1px solid #d1d5db",
+                            fontSize: "14px",
+                            marginBottom: "12px",
+                            boxSizing: "border-box"
+                        }}
+                    />
 
-            {/* Vorschläge */}
-            <div style={{ marginBottom: "16px" }}>
-            {suggestions.map((s, i) => (
-                <div
-                key={i}
-                onClick={() => setUniverseName(s.title)}
-                style={{
-                    padding: "8px 12px",
-                    borderRadius: "8px",
-                    cursor: "pointer",
-                    fontSize: "13px",
-                    background: universeName === s.title ? "#eff6ff" : "transparent",
-                    color: universeName === s.title ? "#2563eb" : "#374151",
-                    marginBottom: "4px"
-                }}
-                onMouseEnter={e => e.currentTarget.style.background = "#f1f5f9"}
-                onMouseLeave={e => e.currentTarget.style.background = universeName === s.title ? "#eff6ff" : "transparent"}
-                >
-                {s.title}
-                </div>
-            ))}
-            </div>
+                    <div style={{ marginBottom: "16px" }}>
+                        {suggestions.map((s, i) => (
+                            <div
+                                key={i}
+                                onClick={() => setUniverseName(s.title)}
+                                style={{
+                                    padding: "8px 12px",
+                                    borderRadius: "8px",
+                                    cursor: "pointer",
+                                    fontSize: "13px",
+                                    background: universeName === s.title ? "#eff6ff" : "transparent",
+                                    color: universeName === s.title ? "#2563eb" : "#374151",
+                                    marginBottom: "4px"
+                                }}
+                                onMouseEnter={e => e.currentTarget.style.background = "#f1f5f9"}
+                                onMouseLeave={e => e.currentTarget.style.background = universeName === s.title ? "#eff6ff" : "transparent"}
+                            >
+                                {s.title}
+                            </div>
+                        ))}
+                    </div>
+                </>
+            )}
 
             <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
                 <button onClick={() => setShowModal(false)}
