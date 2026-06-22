@@ -272,11 +272,10 @@ export default function Home({ onOpenUniverse }) {
                             marginTop: "8px",
                             color: "#2563eb",
                             cursor: "pointer",
-                            textDecoration: "underline",
                             fontSize: "13px"
                         }}
                     >
-                        <strong>"{existsWarning.universe_name}"</strong>
+                        <strong>{existsWarning.universe_name}</strong>
                     </div>
                 </div>
             )}
