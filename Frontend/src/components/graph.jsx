@@ -42,6 +42,20 @@ export default function Graph({ nodes, edges, onNodeClick }) {
                     }
                 },
                 {
+                    selector: "node[color = '#16a34a']",
+                    style: {
+                        "border-color": "#bbf7d0",
+                        "border-width": 3
+                    }
+                },
+                {
+                    selector: "node[color = '#ca8a04']",
+                    style: {
+                        "border-color": '#fef08a",
+                        "border-width": 3
+                    }
+                },
+                {
                     selector: "edge",
                     style: {
                         "line-color": "#aaa",
