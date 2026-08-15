@@ -531,3 +531,28 @@ def find_anime_in_universes(anime_id):
         "universe_name": row[1],
         "relation_type":  row[2]
     }
+
+def toggle_skip(node_id):
+    conn = get_conn()
+    c = conn.cursor()
+
+    c.execute("""
+    SELECT status FROM progress
+    WHERE node_id = ?
+    """, (node_id,))
+
+    row = c.fetchone()
+    if not row:
+        conn.close()
+        return
+
+    new_status = "planned" if row[0] == "skip" else "skip"
+
+    c.execute("""
+    UPDATE progress
+    SET status = ?
+    WHERE node_id = ?
+    """, (new_status, node_id))
+
+    conn.commit()
+    conn.close()
