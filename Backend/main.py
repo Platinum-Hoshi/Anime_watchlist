@@ -205,6 +205,6 @@ def check_anime_exists(anime_id: int):
     return {"exists": result is not None, "universe": result}
 
 @app.patch("/node/{node_id}/skip")
-def skip_node(node_id: int);
+def skip_node(node_id: int):
     toggle_skip(node_id)
     return {"message": "skip toggled", "node_id": node_id}
