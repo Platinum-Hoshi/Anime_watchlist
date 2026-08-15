@@ -215,6 +215,8 @@ def search_anime_list(name: str):
         json={"query": query, "variables": {"search": name}}
     )
 
+    print("STATUS:", response.status_code)
+    print("RESPONSE:", response.text[:500])
     data = response.json()
 
     if not data.get("data"):
