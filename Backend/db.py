@@ -315,12 +315,15 @@ def get_node_by_anime_id(anime_id):
 
 def get_status_color(status):
     if status == "completed":
-        return "green"
+        return "#16a34a"
 
     if status == "watching":
-        return "yellow"
+        return "ca8a04"
 
-    return "gray"
+    if status == "skip":
+        return "#2563eb"
+
+    return "#9ca3af"
 
 def get_all_universes():
     conn = get_conn()
