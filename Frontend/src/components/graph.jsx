@@ -12,7 +12,8 @@ export default function Graph({ nodes, edges, onNodeClick }) {
                     data: {
                         id: String(n.id),
                         label: n.title,
-                        color: n.color
+                        color: n.color,
+                        status: n.status
                     }
                 })),
 
@@ -42,16 +43,26 @@ export default function Graph({ nodes, edges, onNodeClick }) {
                     }
                 },
                 {
-                    selector: "node[color = '#16a34a']",
+                    selector: "node[status = 'completed']",
                     style: {
+                        "background-color": "#16a34a",
                         "border-color": "#bbf7d0",
                         "border-width": 3
                     }
                 },
                 {
-                    selector: "node[color = '#ca8a04']",
+                    selector: "node[status = 'watching']",
                     style: {
+                        "background-color": "ca8a04",
                         "border-color": "#fef08a",
+                        "border-width": 3
+                    }
+                },
+                {
+                    selector: "node[status = 'skip']",
+                    style: {
+                        "background-color": "#2563eb",
+                        "border-color": "#bfdbfe",
                         "border-width": 3
                     }
                 },
