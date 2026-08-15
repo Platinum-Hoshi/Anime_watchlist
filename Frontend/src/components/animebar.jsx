@@ -82,7 +82,8 @@ export default function AnimeBar({
     node,
     edges,
     nodes,
-    onProgressChange
+    onProgressChange,
+    onSkip
 }) {
     const [open, setOpen] = useState(false);
     const relations = edges.filter(
@@ -173,7 +174,7 @@ export default function AnimeBar({
                     onClick={async (e) => {
                         e.stopPropagation();
                         await toggleSkip(node.id);
-                        onProgressChange(node, node.progress);
+                        onSkip();
                     }}
                     style={{
                         padding: "6px 14px",
