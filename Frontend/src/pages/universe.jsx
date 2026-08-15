@@ -3,7 +3,7 @@ import { getUniverse, updateProgress } from "../api/api";
 import Graph from "../components/graph";
 import AnimeBar from "../components/animebar";
 
-function SpecialGroup({ format, nodes, allNodes, edges, onProgressChange }) {
+function SpecialGroup({ format, nodes, allNodes, edges, onProgressChange, onSkip }) {
     const [open, setOpen] = useState(false);
 
     return (
@@ -40,6 +40,7 @@ function SpecialGroup({ format, nodes, allNodes, edges, onProgressChange }) {
                             nodes={allNodes}
                             edges={edges}
                             onProgressChange={onProgressChange}
+                            onSkip={onSkip}
                         />
                     ))}
                 </div>
@@ -60,7 +61,7 @@ export default function Universe({ id }) {
     }
 
     async function handleProgress(node) {
-        const newProgress = node.progress +1;
+        const newProgress = node.progress + 1;
         await updateProgress(node.id, newProgress);
         loadUniverse();
     }
@@ -72,7 +73,8 @@ export default function Universe({ id }) {
     const EXCLUDE_FORMATS = ["MANGA", "NOVEL", "ONE_SHOT", "MUSIC", "MANHWA", "MANHUA"];
 
     return (
-        <div style={{ maxWidth: "900px", margin: "0 auto", padding: "24px", fontFamily: "sans-serif" }}>            <h1 style={{ margin: "0 0 16px 0" }}>Universe</h1>
+        <div style={{ maxWidth: "900px", margin: "0 auto", padding: "24px", fontFamily: "sans-serif" }}>
+            <h1 style={{ margin: "0 0 16px 0" }}>Universe</h1>
 
             <div style={{
                 display: "flex",
@@ -144,6 +146,7 @@ export default function Universe({ id }) {
                             await updateProgress(node.id, progress);
                             loadUniverse();
                         }}
+                        onSkip={loadUniverse}
                     />
                 ))}
 
@@ -161,6 +164,7 @@ export default function Universe({ id }) {
                             await updateProgress(node.id, progress);
                             loadUniverse();
                         }}
+                        onSkip={loadUniverse}
                     />
                 ))}
             </div>
