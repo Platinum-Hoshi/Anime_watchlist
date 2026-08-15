@@ -1,5 +1,6 @@
 import { useState } from "react";
 import EpisodeList from "./episodelist";
+import { toggleSkip } from "../api/api";
 
 function RelationSection({ relations, nodes, node }) {
     const [openCat, setOpenCat] = useState({});
@@ -168,6 +169,27 @@ export default function AnimeBar({
                     </button>
                 )}
 
+                <button
+                    onClick={async (e) => {
+                        e.stopPropagation();
+                        await toggleSkip(node.id);
+                        onProgressChange(node, node.progress);
+                    }}
+                    style={{
+                        padding: "6px 14px",
+                        borderRadius: "8px",
+                        border: node.status === "skip" ? "1px solid #bfdbfe" : "1px solid #d1d5db",
+                        background: node.status === "skip" ? "#eff6ff" : "#fff",
+                        color: node.status === "skip" ? "#2563eb" : "#374151",
+                        cursor: "pointer",
+                        fontSize: "13px",
+                        fontWeight: "500",
+                        marginRight: "12px"
+                    }}
+                >
+                    {node.status === "skip" ? "↩ Unskip" : "Skip"}
+                </button>
+                
                 <span>
                     {open ? "▲" : "▼"}
                 </span>
