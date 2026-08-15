@@ -397,6 +397,8 @@ def calculate_universe_stats(nodes):
     planned = 0
 
     for node in nodes:
+        if node["status"] == "skip":
+            continue
         episodes = node["episodes"] or 0
         progress = node["progress"] or 0
 
@@ -405,6 +407,8 @@ def calculate_universe_stats(nodes):
 
         status = node["status"]
 
+        if status == "skip":
+            continue
         if status == "completed":
             completed += 1
         elif status == "watching":
