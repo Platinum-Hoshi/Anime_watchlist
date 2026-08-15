@@ -51,7 +51,7 @@ export default function Graph({ nodes, edges, onNodeClick }) {
                 {
                     selector: "node[color = '#ca8a04']",
                     style: {
-                        "border-color": '#fef08a",
+                        "border-color": "#fef08a",
                         "border-width": 3
                     }
                 },
