@@ -19,7 +19,8 @@ from db import (
     get_all_universes,
     update_node_cover,
     delete_universe,
-    find_anime_in_universes
+    find_anime_in_universes,
+    toggle_skip
 )
 
 app = FastAPI() # API gestartet
@@ -202,3 +203,8 @@ def remove_universe(universe_id: int):
 def check_anime_exists(anime_id: int):
     result = find_anime_in_universes(anime_id)
     return {"exists": result is not None, "universe": result}
+
+@app.patch("/node/{node_id}/skip")
+def skip_node(node_id: int);
+    toggle_skip(node_id)
+    return {"message": "skip toggled", "node_id": node_id}
