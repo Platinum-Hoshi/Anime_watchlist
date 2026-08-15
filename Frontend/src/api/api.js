@@ -56,3 +56,10 @@ export async function checkAnimeExists(animeId) {
     const res = await fetch(`${BASE_URL}/search/exists?anime_id=${animeId}`);
     return res.json();
 }
+
+export async function toggleSkip(nodeId) {
+    const res = await fetch(`${BASE_URL}/node/${nodeID}/skip`, {
+        method: "PATCH"
+    });
+    return res.json();
+}
