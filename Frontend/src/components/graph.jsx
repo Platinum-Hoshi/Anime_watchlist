@@ -53,7 +53,7 @@ export default function Graph({ nodes, edges, onNodeClick }) {
                 {
                     selector: "node[status = 'watching']",
                     style: {
-                        "background-color": "ca8a04",
+                        "background-color": "#ca8a04",
                         "border-color": "#fef08a",
                         "border-width": 3
                     }
