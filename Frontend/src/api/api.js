@@ -79,7 +79,12 @@ export async function importBackup(data) {
 }
 
 export async function getWatchlist() {
-  const res = await fetch(`${BASE_URL}/getWatchlist/add`, {
+  const res = await fetch(`${BASE_URL}/watchlist`);
+  return res.json();
+}
+
+export async function addToWatchlist(animeId) {
+  const res = await fetch(`${BASE_URL}/watchlist/add`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ anime_id: animeId })
@@ -92,7 +97,7 @@ export async function getWatchlist() {
 }
 
 export async function removeWatchlistItem(itemId) {
-  const res = await fetch(`${BASE_URL}/watchlist/item/${itemID}`, { method: "DELETE" });
+  const res = await fetch(`${BASE_URL}/watchlist/item/${itemId}`, { method: "DELETE" });
   return res.json();
 }
 
