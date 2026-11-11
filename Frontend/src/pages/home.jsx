@@ -30,6 +30,16 @@ const roundBtn = (bg, color, borderColor = "transparent") => ({
     padding: 0
 });
 
+const sideStyle = (narrow, side) => ({
+    width: narrow ? "auto" : "380px",
+    flexShrink: 0,
+    boxSizing: "border-box",
+    background: "#fff",
+    padding: "24px 20px 80px 20px",
+    [side === "left" ? "borderRight" : "borderLeft"]: "1px solid #fed7aa",
+    ...(narrow ? {} : { position: "sticky", top: 0, height: "100vh", overflowY: "auto", alignSelf: "flex-start" })
+});
+
 const colTitle = { margin: "0 0 12px 0", fontSize: "15px", color: "#c2410c", fontWeight: "600" };
 
 const inputStyle = {
@@ -67,9 +77,18 @@ export default function Home({ onOpenUniverse }) {
     const [watchSearch, setWatchSearch] = useState("");
     const [busyTile, setBusyTile] = useState(null);
 
+    // Layout (schmale Bildschirme stapeln die Spalten)
+    const [narrow, setNarrow] = useState(window.innerWidth < 1000);
+
     // Einstellungen
     const [showSettings, setShowSettings] = useState(false);
     const [settingsTab, setSettingsTab] = useState("backups");
+
+    useEffect(() => {
+        const onResize = () => setNarrow(window.innerWidth < 1000);
+        window.addEventListener("resize", onResize);
+        return () => window.removeEventListener("resize", onResize);
+    }, []);
 
     useEffect(() => {
         loadUniverses();
@@ -314,41 +333,11 @@ export default function Home({ onOpenUniverse }) {
 
     // ---------- Render ----------
     return (
-        <div style={{ maxWidth: "1400px", margin: "0 auto", padding: "24px", fontFamily: "sans-serif" }}>
+        <div style={{ display: "flex", flexDirection: narrow ? "column" : "row", alignItems: "stretch", minHeight: "100vh", background: "#fffaf5", fontFamily: "sans-serif" }}>
 
-            {/* Kopfzeile: Titel links, Umschalter in der Mitte */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center", marginBottom: "24px", gap: "12px" }}>
-                <h1 style={{ margin: 0, color: "#ea580c" }}>Anime Watchlist</h1>
-
-                <div style={{ display: "flex", background: "#ffedd5", borderRadius: "10px", padding: "4px" }}>
-                    {[["universes", "Universen"], ["watchlist", "Watchlist"]].map(([key, label]) => (
-                        <button
-                            key={key}
-                            onClick={() => setView(key)}
-                            style={{
-                                padding: "8px 20px",
-                                borderRadius: "8px",
-                                border: "none",
-                                cursor: "pointer",
-                                fontSize: "14px",
-                                fontWeight: "600",
-                                background: view === key ? "#fff" : "transparent",
-                                color: view === key ? "#ea580c" : "#9a3412",
-                                boxShadow: view === key ? "0 1px 3px rgba(0,0,0,0.1)" : "none"
-                            }}
-                        >
-                            {label}{key === "watchlist" && watchlist.length > 0 ? ` (${watchlist.length})` : ""}
-                        </button>
-                    ))}
-                </div>
-
-                <div />
-            </div>
-
-            <div style={{ display: "flex", alignItems: "stretch", flexWrap: "wrap", border: "1px solid #fed7aa", borderRadius: "12px", overflow: "hidden", background: "#fffaf5" }}>
 
                 {/* ===== Linke Spalte: Suche ===== */}
-                <div style={{ flex: "1 1 280px", minWidth: 0, background: "#fff", padding: "20px", borderRight: "1px solid #fed7aa" }}>
+                <div style={sideStyle(narrow, "left")}>
                     <h3 style={colTitle}>Suche</h3>
                     <div style={{ display: "flex", gap: "8px", marginBottom: "12px" }}>
                         <input
@@ -396,7 +385,7 @@ export default function Home({ onOpenUniverse }) {
                         </p>
                     )}
 
-                    <div style={{ maxHeight: "calc(100vh - 280px)", overflowY: "auto", paddingRight: "4px" }}>
+                    <div>
                     {suggestions.map(s => {
                         const inWatchlist = watchlistAnimeIds.has(s.id);
                         return (
@@ -450,7 +439,36 @@ export default function Home({ onOpenUniverse }) {
                 </div>
 
                 {/* ===== Mittlere Spalte ===== */}
-                <div style={{ flex: "2 1 400px", minWidth: 0, padding: "20px" }}>
+                <div style={{ flex: 1, minWidth: 0, padding: "24px" }}>
+            {/* Kopfzeile: Titel links, Umschalter in der Mitte */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center", marginBottom: "24px", gap: "12px" }}>
+                <h1 style={{ margin: 0, color: "#ea580c", fontSize: "26px", whiteSpace: "nowrap" }}>Anime Watchlist</h1>
+
+                <div style={{ display: "flex", background: "#ffedd5", borderRadius: "10px", padding: "4px" }}>
+                    {[["universes", "Universen"], ["watchlist", "Watchlist"]].map(([key, label]) => (
+                        <button
+                            key={key}
+                            onClick={() => setView(key)}
+                            style={{
+                                padding: "8px 20px",
+                                borderRadius: "8px",
+                                border: "none",
+                                cursor: "pointer",
+                                fontSize: "14px",
+                                fontWeight: "600",
+                                background: view === key ? "#fff" : "transparent",
+                                color: view === key ? "#ea580c" : "#9a3412",
+                                boxShadow: view === key ? "0 1px 3px rgba(0,0,0,0.1)" : "none"
+                            }}
+                        >
+                            {label}{key === "watchlist" && watchlist.length > 0 ? ` (${watchlist.length})` : ""}
+                        </button>
+                    ))}
+                </div>
+
+                <div />
+            </div>
+
 
                     {view === "universes" && (
                         <>
@@ -566,7 +584,7 @@ export default function Home({ onOpenUniverse }) {
 
                 {/* ===== Rechte Spalte: Watchlist-Übersicht (nur in der Universen-Ansicht) ===== */}
                 {view === "universes" && (
-                    <div style={{ flex: "1 1 300px", minWidth: 0, background: "#fff", padding: "20px", borderLeft: "1px solid #fed7aa" }}>
+                    <div style={sideStyle(narrow, "right")}>
                         <h3 style={colTitle}>Watchlist</h3>
                         <input
                             type="text"
@@ -583,7 +601,6 @@ export default function Home({ onOpenUniverse }) {
                         {visibleWatchlist.map(renderTile)}
                     </div>
                 )}
-            </div>
 
             {/* Zahnrad unten links */}
             <button
