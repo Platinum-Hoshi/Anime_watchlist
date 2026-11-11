@@ -643,7 +643,7 @@ def get_watchlist():
         """, (r[0],))
         items = [
             {"id": i[0], "anime_id": i[1], "title": i[2],
-                "format": i[3], "cover"; i[4], "year": i[5]}
+                "format": i[3], "cover": i[4], "year": i[5]}
             for i in c.fetchall()
         ]
         tiles.append({"id": r[0], "name": r[1], "cover": r[2], "items": items})
