@@ -113,7 +113,7 @@ export default function Home({ onOpenUniverse }) {
   }
 
   async function handleDeleteTile(tile) {
-    if (!confirm(`"${tile.name}" aud der Watchlist entfernen?`)) return;
+    if (!confirm(`"${tile.name}" aus der Watchlist entfernen?`)) return;
     await deleteWatchlistTile(tile.id);
     loadWatchlist();
   }
@@ -531,23 +531,6 @@ export default function Home({ onOpenUniverse }) {
             }}>
             <h2 style={{ marginTop: 0 }}>Universe benennen</h2>
 
-            {!existsWarning && (
-                <button onClick={handleAddToWatchlist}
-                    style={{
-                        padding: "8px 16px",
-                        borderRadius: "8px",
-                        border: "1px solid #2563eb",
-                        background: "#fff",
-                        color: "#2563eb",
-                        cursor: "pointer",
-                        fontWeight: "600",
-                        fontSize: "13px"
-                    }}
-                >
-                    Zur Watchlist
-                </button>
-            )}
-
             {existsWarning && (
                 <div style={{
                     padding: "12px 16px",
@@ -631,6 +614,24 @@ export default function Home({ onOpenUniverse }) {
                 >
                     Abbrechen
                 </button>
+
+                {!existsWarning && (
+                    <button onClick={handleAddToWatchlist}
+                        style={{
+                            padding: "8px 16px",
+                            borderRadius: "8px",
+                            border: "1px solid #2563eb",
+                            background: "#fff",
+                            color: "#2563eb",
+                            cursor: "pointer",
+                            fontWeight: "600",
+                            fontSize: "13px"
+                        }}
+                    >
+                        Zur Watchlist
+                    </button>
+                )}
+
                 {!existsWarning && (
                     <button onClick={handleCreate} disabled={importing}
                         style={{
