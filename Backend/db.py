@@ -616,7 +616,7 @@ def add_to_watchlist(anime, neighbor_ids):
             c.execute("UPDATE watchlist_items SET watchlist_id = ? WHERE watchlist_id = ?", (target, other))
             c.execute("DELETE FROM watchlist WHERE id = ?", (other,))
     else:
-        c.execute("INSERT INTO watchlist (name, cover_image VALUES (?, ?)", (title, anime.get("cover")))
+        c.execute("INSERT INTO watchlist (name, cover_image) VALUES (?, ?)", (title, anime.get("cover")))
         target = c.lastrowid
 
     c.execute("""
@@ -633,7 +633,7 @@ def get_watchlist():
     c = conn.cursor()
 
     c.execute("SELECT id, name, cover_image FROM watchlist ORDER BY id DESC")
-    titles = []
+    tiles = []
     for r in c.fetchall():
         c.execute("""
         SELECT id, anime_id, title, format, cover_image, year
@@ -649,7 +649,7 @@ def get_watchlist():
         tiles.append({"id": r[0], "name": r[1], "cover": r[2], "items": items})
 
     conn.close()
-    return titles
+    return tiles
 
 def remove_watchlist_item(item_id):
     conn = get_conn()

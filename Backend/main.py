@@ -116,9 +116,9 @@ def watchlist():
 def watchlist_add(data: WatchlistAdd):
     anime = get_anime_by_id(data.anime_id)
     if anime is None:
-        raise HTTPExpection(status_code=503, detail="AniList nicht erreichbar oder Anime nicht gefunden")
+        raise HTTPException(status_code=503, detail="AniList nicht erreichbar oder Anime nicht gefunden")
 
-    ignore = {"CHARAKTER", "OTHER", "CONTAINS", "COMPILATION"}
+    ignore = {"CHARACTER", "OTHER", "CONTAINS", "COMPILATION"}
     neighbor_ids = {
         e["target"] for e in anime["graph"]["edges"]
         if e["relation_type"] not in ignore

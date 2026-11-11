@@ -118,7 +118,7 @@ export default function Home({ onOpenUniverse }) {
     loadWatchlist();
   }
 
-  async function handleRemoveItem(itmeId) {
+  async function handleRemoveItem(itemId) {
     await removeWatchlistItem(itemId);
     loadWatchlist();
   }
