@@ -30,12 +30,12 @@ const roundBtn = (bg, color, borderColor = "transparent") => ({
     padding: 0
 });
 
-const colTitle = { margin: "0 0 12px 0", fontSize: "15px", color: "#475569", fontWeight: "600" };
+const colTitle = { margin: "0 0 12px 0", fontSize: "15px", color: "#c2410c", fontWeight: "600" };
 
 const inputStyle = {
     padding: "9px 12px",
     borderRadius: "8px",
-    border: "1px solid #d1d5db",
+    border: "1px solid #fdba74",
     fontSize: "14px",
     boxSizing: "border-box"
 };
@@ -318,9 +318,9 @@ export default function Home({ onOpenUniverse }) {
 
             {/* Kopfzeile: Titel links, Umschalter in der Mitte */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center", marginBottom: "24px", gap: "12px" }}>
-                <h1 style={{ margin: 0 }}>Anime Watchlist</h1>
+                <h1 style={{ margin: 0, color: "#ea580c" }}>Anime Watchlist</h1>
 
-                <div style={{ display: "flex", background: "#f1f5f9", borderRadius: "10px", padding: "4px" }}>
+                <div style={{ display: "flex", background: "#ffedd5", borderRadius: "10px", padding: "4px" }}>
                     {[["universes", "Universen"], ["watchlist", "Watchlist"]].map(([key, label]) => (
                         <button
                             key={key}
@@ -333,7 +333,7 @@ export default function Home({ onOpenUniverse }) {
                                 fontSize: "14px",
                                 fontWeight: "600",
                                 background: view === key ? "#fff" : "transparent",
-                                color: view === key ? "#2563eb" : "#64748b",
+                                color: view === key ? "#ea580c" : "#9a3412",
                                 boxShadow: view === key ? "0 1px 3px rgba(0,0,0,0.1)" : "none"
                             }}
                         >
@@ -345,10 +345,10 @@ export default function Home({ onOpenUniverse }) {
                 <div />
             </div>
 
-            <div style={{ display: "flex", gap: "24px", alignItems: "flex-start", flexWrap: "wrap" }}>
+            <div style={{ display: "flex", alignItems: "stretch", flexWrap: "wrap", border: "1px solid #fed7aa", borderRadius: "12px", overflow: "hidden", background: "#fffaf5" }}>
 
                 {/* ===== Linke Spalte: Suche ===== */}
-                <div style={{ flex: "1 1 280px", minWidth: 0 }}>
+                <div style={{ flex: "1 1 280px", minWidth: 0, background: "#fff", padding: "20px", borderRight: "1px solid #fed7aa" }}>
                     <h3 style={colTitle}>Suche</h3>
                     <div style={{ display: "flex", gap: "8px", marginBottom: "12px" }}>
                         <input
@@ -379,7 +379,7 @@ export default function Home({ onOpenUniverse }) {
                                 padding: "9px 14px",
                                 borderRadius: "8px",
                                 border: "none",
-                                background: "#2563eb",
+                                background: "#ea580c",
                                 color: "#fff",
                                 cursor: "pointer",
                                 fontWeight: "600",
@@ -396,6 +396,7 @@ export default function Home({ onOpenUniverse }) {
                         </p>
                     )}
 
+                    <div style={{ maxHeight: "calc(100vh - 280px)", overflowY: "auto", paddingRight: "4px" }}>
                     {suggestions.map(s => {
                         const inWatchlist = watchlistAnimeIds.has(s.id);
                         return (
@@ -445,10 +446,11 @@ export default function Home({ onOpenUniverse }) {
                             </div>
                         );
                     })}
+                    </div>
                 </div>
 
                 {/* ===== Mittlere Spalte ===== */}
-                <div style={{ flex: "2 1 400px", minWidth: 0 }}>
+                <div style={{ flex: "2 1 400px", minWidth: 0, padding: "20px" }}>
 
                     {view === "universes" && (
                         <>
@@ -564,7 +566,7 @@ export default function Home({ onOpenUniverse }) {
 
                 {/* ===== Rechte Spalte: Watchlist-Übersicht (nur in der Universen-Ansicht) ===== */}
                 {view === "universes" && (
-                    <div style={{ flex: "1 1 300px", minWidth: 0 }}>
+                    <div style={{ flex: "1 1 300px", minWidth: 0, background: "#fff", padding: "20px", borderLeft: "1px solid #fed7aa" }}>
                         <h3 style={colTitle}>Watchlist</h3>
                         <input
                             type="text"
@@ -646,8 +648,8 @@ export default function Home({ onOpenUniverse }) {
                                         cursor: "pointer",
                                         fontSize: "14px",
                                         fontWeight: "500",
-                                        background: settingsTab === key ? "#eff6ff" : "transparent",
-                                        color: settingsTab === key ? "#2563eb" : "#374151"
+                                        background: settingsTab === key ? "#fff7ed" : "transparent",
+                                        color: settingsTab === key ? "#ea580c" : "#374151"
                                     }}
                                 >
                                     {label}
@@ -671,7 +673,7 @@ export default function Home({ onOpenUniverse }) {
                                                 padding: "8px 16px",
                                                 borderRadius: "8px",
                                                 border: "none",
-                                                background: "#2563eb",
+                                                background: "#ea580c",
                                                 color: "#fff",
                                                 cursor: "pointer",
                                                 fontWeight: "600",
@@ -760,7 +762,7 @@ export default function Home({ onOpenUniverse }) {
                                         setShowModal(false);
                                         onOpenUniverse(existsWarning.universe_id);
                                     }}
-                                    style={{ marginTop: "8px", color: "#2563eb", cursor: "pointer", fontSize: "13px" }}
+                                    style={{ marginTop: "8px", color: "#ea580c", cursor: "pointer", fontSize: "13px" }}
                                 >
                                     <strong>{existsWarning.universe_name}</strong>
                                 </div>
@@ -787,8 +789,8 @@ export default function Home({ onOpenUniverse }) {
                                                 borderRadius: "8px",
                                                 cursor: "pointer",
                                                 fontSize: "13px",
-                                                background: universeName === s.title ? "#eff6ff" : "transparent",
-                                                color: universeName === s.title ? "#2563eb" : "#374151",
+                                                background: universeName === s.title ? "#fff7ed" : "transparent",
+                                                color: universeName === s.title ? "#ea580c" : "#374151",
                                                 marginBottom: "4px"
                                             }}
                                         >
@@ -821,7 +823,7 @@ export default function Home({ onOpenUniverse }) {
                                         padding: "8px 16px",
                                         borderRadius: "8px",
                                         border: "none",
-                                        background: "#2563eb",
+                                        background: "#ea580c",
                                         color: "#fff",
                                         cursor: "pointer",
                                         fontWeight: "600",
