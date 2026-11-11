@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPExpection
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -22,7 +22,11 @@ from db import (
     find_anime_in_universes,
     toggle_skip,
     export_all,
-    import_all
+    import_all,
+    add_to_watchlist,
+    get_watchlist,
+    remove_watchlist_item,
+    delete_watchlist_tile
 )
 
 app = FastAPI() # API gestartet
@@ -100,6 +104,37 @@ def create_universe(data: CreateUniverse):
         "message": "universe imported",
         "universe_id": universe_id
     }
+
+class WatchlistAdd(BaseModel):
+    anime_id: int
+
+@app.get("/watchlist")
+def watchlist():
+    return {"watchlist": get_watchlist()}
+
+@app.post("/watchlist/add")
+def watchlist_add(data: WatchlistAdd):
+    anime = get_anime_by_id(data.anime_id)
+    if anime is None:
+        raise HTTPExpection(status_code=503, detail="AniList nicht erreichbar oder Anime nicht gefunden")
+
+    ignore = {"CHARAKTER", "OTHER", "CONTAINS", "COMPILATION"}
+    neighbor_ids = {
+        e["target"] for e in anime["graph"]["edges"]
+        if e["relation_type"] not in ignore
+    }
+
+    return add_to_watchlist(anime, neighbor_ids)
+
+@app.delete("/watchlist/item/{item_id}")
+def watchlist_remove_item(item_id: int):
+    remove_watchlist_item(item_id)
+    return {"message": "item removed"}
+
+@app.delete(f"/watchlist/{watchlist_id}")
+def watchlist_delete_title(watchlist_id: int):
+    delete_watchlist_tile(watchlist_id)
+    return {"message": "tile deleted"}
 
 @app.get("/universe/{universe_id}") # Daten lesen
 def universe(universe_id: int):

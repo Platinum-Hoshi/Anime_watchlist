@@ -64,6 +64,27 @@ def init_db():
     )
     """)
 
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS watchlist (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            cover_image TEXT
+        )
+        """)
+
+    c.execute("""
+    CREATE TABLE IF NOT EXISTS watchlist_items (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        watchlist_id INTEGER,
+        anime_id INTEGER UNIQUE,
+        title TEXT,
+        format TEXT,
+        cover_image TEXT,
+        year INTEGER,
+        FOREIGN KEY (watchlist_id) REFERENCES watchlist(id)
+        )
+        """)
+
     conn.commit()   # schreibt Änderungen in die Datei
     conn.close()    # schliesst die DB sauber
 
@@ -569,14 +590,98 @@ def toggle_skip(node_id):
     conn.commit()
     conn.close()
 
-BACKUP_TABLES = ("universes", "anime_nodes", "relations", "progress")
+def add_to_watchlist(anime, neighbor_ids):
+    conn = get_conn()
+    c = conn.cursor()
+
+    c.execute("SELECT if FROM watchlist_items WHERE anime_id = ?", (anime["id"],))
+    if c.fetchone():
+        conn.close()
+        return {"status": "exists"}
+
+    title = anime["title"].get("english") or anime["title"].get("romaji", "")
+
+    matches = []
+    if neighbor_ids:
+        placehoders = ",".join("?" for _ in neighbor_ids)
+        c.execute(
+            f"SELECT DISTINCT watchlist_id FROM watchlist_items WHERE anime_id IN ({placehoders})",
+            list(neighbor_ids)
+        )
+        matches = [r[0]for r in c.fetchall()]
+
+    if matches:
+        target = matches[0]
+        for other in matches[1:]:
+            c.execute("UPDATE watchlist_items SET watchlist_id = ? WHERE watchlist_id = ?", (target, other))
+            c.execute("DELETE FROM watchlist WHERE id = ?", (other,))
+    else:
+        c.execute("INSERT INTO watchlist (name, cover_image VALUES (?, ?)", (title, anime.get("cover")))
+        target = c.lastrowid
+
+    c.execute("""
+    INSERT INTO watchlist_items (watchlist_id, anime_id, title, format, cover_image, year)
+    VALUES (?, ?, ?, ?, ?, ?)
+    """, (target, anime["id"], title, anime.get("format"), anime.get("cover"), anime.get("year")))
+
+    conn.commit()
+    conn.close()
+    return {"status": "added", "watchlist_id": target}
+
+def get_watchlist():
+    conn = get_conn()
+    c = conn.cursor()
+
+    c.execute("SELECT id, name, cover_image FROM watchlist ORDER BY id DESC")
+    titles = []
+    for r in c.fetchall():
+        c.execute("""
+        SELECT id, anime_id, title, format, cover_image, year
+        FROM watchlist_items
+        WHERE watchlist_id = ?
+        ORDER BY year, id
+        """, (r[0],))
+        items = [
+            {"id": i[0], "anime_id": i[1], "title": i[2],
+                "format": i[3], "cover"; i[4], "year": i[5]}
+            for i in c.fetchall()
+        ]
+        tiles.append({"id": r[0], "name": r[1], "cover": r[2], "items": items})
+
+    conn.close()
+    return titles
+
+def remove_watchlist_item(item_id):
+    conn = get_conn()
+    c = conn.cursor()
+
+    c.execute("SELECT watchlist_id FROM watchlist_items WHERE id = ?", (item_id,))
+    row = c.fetchone()
+    if row:
+        c.execute("DELETE FROM watchlist_items WHERE id = ?", (item_id,))
+        c.execute("SELECT COUNT(*) FROM watchlist_items WHERE watchlist_id = ?", (row[0],))
+        if c.fetchone()[0] == 0:
+            c.execute("DELETE FROM watchlist WHERE id = ?", (row[0],))
+
+    conn.commit()
+    conn.close()
+
+def delete_watchlist_tile(watchlist_id):
+    conn = get_conn()
+    c = conn.cursor()
+    c.execute("DELETE FROM watchlist_items WHERE watchlist_id = ?", (watchlist_id,))
+    c.execute("DELETE FROM watchlist WHERE id = ?", (watchlist_id,))
+    conn.commit()
+    conn.close()
+
+BACKUP_TABLES = ("universes", "anime_nodes", "relations", "progress", "watchlist", "watchlist_items")
 
 def export_all():
     conn = get_conn()
     c = conn.cursor()
 
     data = {"version": 1}
-    for  tabel in BACKUP_TABLES:
+    for  table in BACKUP_TABLES:
         c.execute(f"SELECT * FROM {table}")
         cols = [d[0] for d in c.description]
         data[table] = [dict(zip(cols, row)) for row in c.fetchall()]
