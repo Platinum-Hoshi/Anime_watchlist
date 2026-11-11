@@ -594,7 +594,7 @@ def add_to_watchlist(anime, neighbor_ids):
     conn = get_conn()
     c = conn.cursor()
 
-    c.execute("SELECT if FROM watchlist_items WHERE anime_id = ?", (anime["id"],))
+    c.execute("SELECT id FROM watchlist_items WHERE anime_id = ?", (anime["id"],))
     if c.fetchone():
         conn.close()
         return {"status": "exists"}
