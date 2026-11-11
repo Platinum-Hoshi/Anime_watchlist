@@ -131,7 +131,7 @@ def watchlist_remove_item(item_id: int):
     remove_watchlist_item(item_id)
     return {"message": "item removed"}
 
-@app.delete(f"/watchlist/{watchlist_id}")
+@app.delete("/watchlist/{watchlist_id}")
 def watchlist_delete_title(watchlist_id: int):
     delete_watchlist_tile(watchlist_id)
     return {"message": "tile deleted"}
