@@ -193,7 +193,7 @@ def build_graph(anime):
 def search_anime_list(name: str):
     query = """
     query ($search: String) {
-        Page(page: 1, perPage: 5) {
+        Page(page: 1, perPage: 10) {
             media(search: $search, type: ANIME) {
                 id
                 title {
@@ -221,7 +221,7 @@ def search_anime_list(name: str):
 
     if not data.get("data"):
         return[]
-    
+
     media = data["data"]["Page"]["media"]
 
     return [
