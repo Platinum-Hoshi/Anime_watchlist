@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { getUniverses, searchAnimeList, createUniverse, deleteUniverse, checkAnimeExists, exportBackup, importBackup } from "../api/api";
+import { getUniverses, searchAnimeList, createUniverse, deleteUniverse, checkAnimeExists, exportBackup, importBackup, getWatchlist, addToWatchlist, removeWatchlistItem, deleteWatchlistTile } from "../api/api";
 
 export default function Home({ onOpenUniverse }) {
     const [universes, setUniverses] = useState([]);
@@ -13,14 +13,25 @@ export default function Home({ onOpenUniverse }) {
     const [showSuggestions, setShowSuggestions] = useState(false);
     const debounceRef = useRef(null);
     const [existsWarning, setExistsWarning] = useState(null);
+    const [view, setView] = useState("universes");
+    const [watchlist, setWatchlist] = useState([]);
+    const [openTiles, setOpenTiles] = useState([]);
+    const [selectedId, setSelectedId] = useState(null);
+    const [busyTile, setBusyTile] = useState(null);
 
     useEffect(() => {
         loadUniverses();
+        loadWatchlist();
     }, []);
 
     async function loadUniverses() {
         const data = await getUniverses();
         setUniverses(data.universes);
+    }
+
+    async function loadWatchlist() {
+        const data = await getWatchlist();
+        setWatchlist(data.watchlist);
     }
 
     async function handleSearch(searchQuery) {
@@ -45,6 +56,7 @@ export default function Home({ onOpenUniverse }) {
         setUniverseName(suggestion.title);
         setQuery(suggestion.title);
         setShowSuggestions(false);
+        setSelectedId(suggestion.id);
 
         const result = await checkAnimeExists(suggestion.id);
         if (result.exists) {
@@ -67,19 +79,63 @@ export default function Home({ onOpenUniverse }) {
         loadUniverses();
     }
 
+  async function handleAddToWatchlist() {
+    try {
+        const res = await addToWatchlist(selectedId);
+        setShowModal(false);
+        setQuery("");
+        setSuggestions([]);
+        await loadWatchlist();
+        setView("watchlist");
+        if (res.status === "exists") alert("Dieser Anime  ist schon in der Watchlist.");
+    } catch (err) {
+        alert(err.message);
+    }
+  }
+
+  function toggleTile(id) {
+    setOpenTiles(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  }
+
+  async function handleImportTile(tile) {
+    if (!confirm(`"${tile.name}" als Universe Importieren? Die Kachel wird danach aus der Watchlist entfernt.`)) return;
+    setBusyTile(tile.id);
+    try {
+      await createUniverse(tile.items[0].title, tile.name);
+      await deleteWatchlistTile(tile.id);
+      await loadUniverses();
+      await loadWatchlist();
+      setView("universes");
+    } catch {
+      alert("Import fehlgeschlagen (ist AniList erreichbar?).");
+    }
+    setBusyTile(null);
+  }
+
+  async function handleDeleteTile(tile) {
+    if (!confirm(`"${tile.name}" aud der Watchlist entfernen?`)) return;
+    await deleteWatchlistTile(tile.id);
+    loadWatchlist();
+  }
+
+  async function handleRemoveItem(itmeId) {
+    await removeWatchlistItem(itemId);
+    loadWatchlist();
+  }
+
     async function handleExport() {
         const data = await exportBackup();
         const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = `anime-watchlist-backup-${new Date().toISOString().slice(0, 10)},json`;
+        a.download = `anime-watchlist-backup-${new Date().toISOString().slice(0, 10)}.json`;
         a.click();
         URL.revokeObjectURL(url);
     }
 
   async function handleImport(e) {
-      const file = e.target.file[0];
+      const file = e.target.files[0];
       if (!file) return;
 
       if (!confirm("Alle aktuellen Daten werden durch das Backup ersetzt. Fortfahren?")) {
@@ -134,6 +190,28 @@ export default function Home({ onOpenUniverse }) {
                     />
                 </label>
             </div>
+        </div>
+
+        <div style={{ display: "flex", gap: "0", marginBottom: "20px", background: "#f1f5f9", borderRadius: "10px", padding: "4px", width: "fit-content" }}>
+            {[["universes", "Universen"], ["watchlist", "Watchlist"]].map(([key, label]) => (
+                <button
+                    key={key}
+                    onClick={() => setView(key)}
+                    style={{
+                        padding: "8px 20px",
+                        borderRadius: "8px",
+                        border: "none",
+                        cursor: "pointer",
+                        fontSize: "14px",
+                        fontWeight: "600",
+                        background: view === key ? "#fff" : "transparent",
+                        color: view === key ? "#2563eb" : "#64748b",
+                        boxShadow: view === key ? "0 1px 3px rgba(0,0,0,0.1)" : "none"
+                    }}
+                >
+                    {label}{key === "watchlist" && watchlist.length > 0 ? ` (${watchlist.length})` : ""}
+                </button>
+            ))}
         </div>
 
         {/* Suchfeld */}
@@ -236,7 +314,7 @@ export default function Home({ onOpenUniverse }) {
         )}
 
         {/* Universe Liste */}
-        {universes.map(u => (
+        {view === "universes" && universes.map(u => (
         <div
             key={u.id}
             style={{
@@ -318,6 +396,120 @@ export default function Home({ onOpenUniverse }) {
         </div>
         ))}
 
+        {/* Watchlist */}
+        {view === "watchlist" && (
+            <>
+                {watchlist.length === 0 && (
+                    <p style={{ color: "#888" }}>
+                        Noch nichts auf der Watchlist. Suche einen Anime und wähle "Zur Watchlist".
+                    </p>
+                )}
+                {watchlist.map(tile => {
+                    const isOpen = openTiles.includes(tile.id);
+                    return (
+                        <div
+                            key={tile.id}
+                            style={{
+                                marginBottom: "10px",
+                                background: "#f8fafc",
+                                border: "1px solid #d1d5db",
+                                borderRadius: "12px",
+                                boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+                                overflow: "hidden"
+                            }}
+                        >
+                            <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "16px" }}>
+                                <div
+                                    onClick={() => toggleTile(tile.id)}
+                                    style={{ display: "flex", alignItems: "center", gap: "16px", flex: 1, cursor: "pointer" }}
+                                >
+                                    {tile.cover && (
+                                        <img
+                                            src={tile.cover}
+                                            alt={tile.name}
+                                            style={{ width: "48px", height: "68px", objectFit: "cover", borderRadius: "6px", flexShrink: 0 }}
+                                        />
+                                    )}
+                                    <div>
+                                        <h3 style={{ margin: 0 }}>{tile.name}</h3>
+                                        <div style={{ fontSize: "12px", color: "#888", marginTop: "4px" }}>
+                                            {tile.items.length} {tile.items.length === 1 ? "Eintrag" : "Einträge"} {isOpen ? "▲" : "▼"}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button
+                                    onClick={() => handleImportTile(tile)}
+                                    disabled={busyTile === tile.id}
+                                    style={{
+                                        padding: "6px 12px",
+                                        borderRadius: "8px",
+                                        border: "none",
+                                        background: "#2563eb",
+                                        color: "#fff",
+                                        cursor: "pointer",
+                                        fontSize: "13px",
+                                        fontWeight: "500",
+                                        flexShrink: 0
+                                    }}
+                                >
+                                    {busyTile === tile.id ? "Importiere..." : "Als Universe importieren"}
+                                </button>
+                                <button
+                                    onClick={() => handleDeleteTile(tile)}
+                                    style={{
+                                        padding: "6px 12px",
+                                        borderRadius: "8px",
+                                        border: "1px solid #fca5a5",
+                                        background: "#fff",
+                                        color: "#ef4444",
+                                        cursor: "pointer",
+                                        fontSize: "13px",
+                                        fontWeight: "500",
+                                        flexShrink: 0
+                                    }}
+                                >
+                                    Löschen
+                                </button>
+                            </div>
+
+                            {isOpen && (
+                                <div style={{ borderTop: "1px solid #e5e7eb", background: "#fff" }}>
+                                    {tile.items.map(item => (
+                                        <div
+                                            key={item.id}
+                                            style={{ display: "flex", alignItems: "center", gap: "12px", padding: "10px 16px", borderBottom: "1px solid #f1f5f9" }}
+                                        >
+                                            {item.cover && (
+                                                <img
+                                                    src={item.cover}
+                                                    alt={item.title}
+                                                    style={{ width: "30px", height: "44px", objectFit: "cover", borderRadius: "4px", flexShrink: 0 }}
+                                                />
+                                            )}
+                                            <div style={{ flex: 1 }}>
+                                                <div style={{ fontSize: "14px", fontWeight: "500" }}>{item.title}</div>
+                                                <div style={{ fontSize: "12px", color: "#888" }}>
+                                                    {item.format} {item.year ? `· ${item.year}` : ""}
+                                                </div>
+                                            </div>
+                                            <button
+                                                onClick={() => handleRemoveItem(item.id)}
+                                                title="Aus Watchlist entfernen"
+                                                style={{ border: "none", background: "transparent", color: "#9ca3af", cursor: "pointer", fontSize: "16px" }}
+                                            >
+                                                ✕
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    );
+                })}
+            </>
+        )}
+
         {/* Modal */}
         {showModal && (
             <div style={{
@@ -338,6 +530,23 @@ export default function Home({ onOpenUniverse }) {
                 boxShadow: "0 8px 32px rgba(0,0,0,0.15)"
             }}>
             <h2 style={{ marginTop: 0 }}>Universe benennen</h2>
+
+            {!existsWarning && (
+                <button onClick={handleAddToWatchlist}
+                    style={{
+                        padding: "8px 16px",
+                        borderRadius: "8px",
+                        border: "1px solid #2563eb",
+                        background: "#fff",
+                        color: "#2563eb",
+                        cursor: "pointer",
+                        fontWeight: "600",
+                        fontSize: "13px"
+                    }}
+                >
+                    Zur Watchlist
+                </button>
+            )}
 
             {existsWarning && (
                 <div style={{

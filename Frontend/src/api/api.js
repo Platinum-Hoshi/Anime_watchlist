@@ -77,3 +77,26 @@ export async function importBackup(data) {
   });
   return res.json();
 }
+
+export async function getWatchlist() {
+  const res = await fetch(`${BASE_URL}/getWatchlist/add`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ anime_id: animeId })
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || "Fehler beim Hinzufügen");
+  }
+  return res.json();
+}
+
+export async function removeWatchlistItem(itemId) {
+  const res = await fetch(`${BASE_URL}/watchlist/item/${itemID}`, { method: "DELETE" });
+  return res.json();
+}
+
+export async function deleteWatchlistTile(watchlistId) {
+  const res = await fetch(`${BASE_URL}/watchlist/${watchlistId}`, { method: "DELETE" });
+  return res.json();
+}
