@@ -12,7 +12,8 @@ export default function Graph({ nodes, edges, onNodeClick }) {
                     data: {
                         id: String(n.id),
                         label: n.title,
-                        color: n.color
+                        color: n.color,
+                        status: n.status
                     }
                 })),
 
@@ -30,9 +31,39 @@ export default function Graph({ nodes, edges, onNodeClick }) {
                     selector: "node",
                     style: {
                         "label": "data(label)",
-                        "background-color": "center",
-                        "color": "#fff",
-                        "font-size": "10px"
+                        "background-color": "data(color)",
+                        "color": "#1a1a1a",
+                        "font-size": "11px",
+                        "text-valign": "bottom",
+                        "text-margin-y": "4px",
+                        "border-width": 2,
+                        "border-color": "#fff",
+                        "width": 40,
+                        "height": 40
+                    }
+                },
+                {
+                    selector: "node[status = 'completed']",
+                    style: {
+                        "background-color": "#16a34a",
+                        "border-color": "#bbf7d0",
+                        "border-width": 3
+                    }
+                },
+                {
+                    selector: "node[status = 'watching']",
+                    style: {
+                        "background-color": "#ca8a04",
+                        "border-color": "#fef08a",
+                        "border-width": 3
+                    }
+                },
+                {
+                    selector: "node[status = 'skip']",
+                    style: {
+                        "background-color": "#2563eb",
+                        "border-color": "#bfdbfe",
+                        "border-width": 3
                     }
                 },
                 {
@@ -51,13 +82,21 @@ export default function Graph({ nodes, edges, onNodeClick }) {
         });
         cy.on("tap", "node", (event) => {
             const node = event.target.data();
+            onNodeClick(node.id);
         });
         return () => cy.destroy();
     }, [nodes, edges]);
     return (
         <div
             ref={containerRef}
-            style={{ widht: "100%", height: "400px" }}
+            style={{
+                width: "100%",
+                height: "400px",
+                borderRadius: "12px",
+                border: "1px solid #e0e0e0",
+                marginBottom: "24px",
+                background: "#fafafa"
+            }}
         />
     );
 }

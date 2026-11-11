@@ -80,6 +80,11 @@ def get_anime_by_id(anime_id: int):
             description
             genres
             episodes
+            coverImage {
+                large
+                medium
+            }
+            bannerImage
             relations {
                 edges{
                     relationType
@@ -110,7 +115,15 @@ def get_anime_by_id(anime_id: int):
     )
 
     data = response.json()
+
+    if not data.get("data"):
+        return None
+
     anime = data["data"]["Media"]
+
+    if anime is None:
+        return None
+
     graph = build_graph(anime)
     return format_anime(anime, graph)
 
@@ -122,8 +135,8 @@ def format_anime(anime, graph):
             "english": anime["title"]["english"],
             "native": anime["title"]["native"],
         },
-        "cover": anime["coverImage"]["large"],
-        "banner": anime["bannerImage"],
+        "cover": (anime.get("coverImage") or {}).get("large"),
+        "banner": anime.get("bannerImage"),
         "year": anime["seasonYear"],
         "status": anime["status"],
         "format": anime["format"],
@@ -140,9 +153,10 @@ def build_graph(anime):
     # main anime node
     main_node = {
         "id": anime["id"],
-        "title": anime["title"]["romaji"],
+        "title": anime["title"].get("english") or anime["title"].get("romaji", ""),
         "format": anime["format"],
         "episodes": anime["episodes"],
+        "cover": (anime.get("coverImage") or {}).get("large"),
         "main": True
     }
 
@@ -158,6 +172,7 @@ def build_graph(anime):
             "title": node["title"],
             "format": node["format"],
             "episodes": node["episodes"],
+            "cover": None,
             "main": False
         }
 
@@ -174,3 +189,48 @@ def build_graph(anime):
         "nodes": nodes,
         "edges": edges
     }
+
+def search_anime_list(name: str):
+    query = """
+    query ($search: String) {
+        Page(page: 1, perPage: 5) {
+            media(search: $search, type: ANIME) {
+                id
+                title {
+                    romaji
+                    english
+                }
+                coverImage {
+                    large
+                }
+                format
+                seasonYear
+            }
+        }
+    }
+    """
+
+    response = requests.post(
+        ANILIST_URL,
+        json={"query": query, "variables": {"search": name}}
+    )
+
+    print("STATUS:", response.status_code)
+    print("RESPONSE:", response.text[:500])
+    data = response.json()
+
+    if not data.get("data"):
+        return[]
+    
+    media = data["data"]["Page"]["media"]
+
+    return [
+        {
+            "id": m["id"],
+            "title": m["title"]["english"] or m["title"]["romaji"],
+            "cover": (m.get("coverImage") or {}).get("large"),
+            "format": m["format"],
+            "year": m["seasonYear"]
+        }
+        for m in media
+    ]

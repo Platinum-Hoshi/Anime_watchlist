@@ -1,23 +1,79 @@
-const BASE_URL = "http://localhost:8000";
+const BASE_URL = "/api";
 
 export async function getUniverses() {
     const res = await fetch(`${BASE_URL}/universes`);
     return res.json();
 }
 
-export async function getUniverses(id) {
-    const res = await fetch(`${BASE_URL}/universes/${id}`);
+export async function getUniverse(id) {
+    const res = await fetch(`${BASE_URL}/universe/${id}`);
     return res.json();
 }
 
-export async function updateProgress(nodeID, progress) {
+export async function updateProgress(nodeId, progress) {
     const res = await fetch(`${BASE_URL}/node/${nodeId}/progress`, {
         method: "PATCH",
         headers: {
-            "Content-Type": "applications/json"
+            "Content-Type": "application/json"
         },
         body: JSON.stringify({ progress })
     });
     return res.json();
 }
 
+export async function searchAnime(query) {
+    const res = await fetch(`${BASE_URL}/search?query=${encodeURIComponent(query)}`);
+    return res.json();
+}
+
+export async function searchRelations(query) {
+    const res = await fetch(`${BASE_URL}/search/relations?query=${encodeURIComponent(query)}`);
+    return res.json();
+}
+
+export async function createUniverse(query, universeName) {
+    const res = await fetch(`${BASE_URL}/universe/create`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query, universe_name: universeName })
+    });
+    return res.json();
+}
+
+export async function searchAnimeList(query) {
+    const res = await fetch(`${BASE_URL}/search/list?query=${encodeURIComponent(query)}`);
+    return res.json();
+}
+
+export async function deleteUniverse(id) {
+    const res = await fetch(`${BASE_URL}/universe/${id}`, {
+        method: "DELETE"
+    });
+    return res.json
+}
+
+export async function checkAnimeExists(animeId) {
+    const res = await fetch(`${BASE_URL}/search/exists?anime_id=${animeId}`);
+    return res.json();
+}
+
+export async function toggleSkip(nodeId) {
+    const res = await fetch(`${BASE_URL}/node/${nodeId}/skip`, {
+        method: "PATCH"
+    });
+    return res.json();
+}
+
+export async function exportBackup() {
+  const res = await fetch(`${BASE_URL}/export`);
+  return res.json();
+}
+
+export async function importBackup(data) {
+  const res = await fetch(`${BASE_URL}/import`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data)
+  });
+  return res.json();
+}

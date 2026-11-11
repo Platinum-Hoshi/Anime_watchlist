@@ -14,17 +14,18 @@ def init_db():
 
     # Universes
     c.execute("""
-    CREATE TABLE IF NOT EXISTS universes (  
+    CREATE TABLE IF NOT EXISTS universes (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
-        main_anime_id INTEGER
+        main_anime_id INTEGER,
+        cover_image TEXT
     )
     """)
     # -Erstellt die Tabelle watchlist, wenn sie noch nicht existiert90285465898917911
     # -eindeutige ID
     # -ID von AniList
     # -Anime Titel (String)
-    # -aktueller Status 
+    # -aktueller Status
     # -wie viele Episoden geschaut sind
     # -Gesamtanzahl Episoden
 
@@ -66,7 +67,7 @@ def init_db():
     conn.commit()   # schreibt Änderungen in die Datei
     conn.close()    # schliesst die DB sauber
 
-def get_or_create_universe(name):
+def get_or_create_universe(name, cover_image=None):
     conn = get_conn()
     c = conn.cursor()
 
@@ -77,7 +78,7 @@ def get_or_create_universe(name):
         conn.close()
         return row[0]
 
-    c.execute("INSERT INTO universes (name) VALUES (?)", (name,))
+    c.execute("INSERT INTO universes (name, cover_image) VALUES (?, ?)", (name, cover_image))
     conn.commit()
 
     universe_id = c.lastrowid
@@ -106,10 +107,10 @@ def add_anime_node(universe_id, anime):
     """, (
         universe_id,
         anime["id"],
-        anime["title"]["romaji"],
+        anime["title"].get("english") or anime["title"].get("romaji", ""),
         anime["format"],
-        anime["cover"],
-        anime["banner"],
+        anime.get("cover"),
+        anime.get("banner"),
         anime["episodes"]
     ))
 
@@ -132,6 +133,15 @@ def add_anime_node(universe_id, anime):
 def add_relation(from_node_id, to_node_id, relation_type):
     conn = get_conn()
     c = conn.cursor()
+
+    c.execute("""
+    SELECT id FROM relations
+    WHERE from_node_id = ? AND to_node_id = ? AND relation_type = ?
+    """, (from_node_id, to_node_id, relation_type))
+
+    if c.fetchone():
+        conn.close()
+        return
 
     c.execute("""
     INSERT INTO relations (from_node_id, to_node_id, relation_type)
@@ -184,19 +194,25 @@ def get_universe(universe_id):
         anime_nodes.format,
         anime_nodes.total_episodes,
         progress.watched_episodes,
-        progress.status
+        progress.status,
+        anime_nodes.cover_image
     FROM anime_nodes
     LEFT JOIN progress
     ON anime_nodes.id = progress.node_id
     WHERE anime_nodes.universe_id = ?
-    """, (universe_id))
+    """, (universe_id,))
 
     rows = c.fetchall()
 
     nodes = []
 
+    EXCLUDE_FORMATS = {"MANGA", "NOVEL", "ONE_SHOT", "MUSIC", "MANHWA", "MANHUA"}
+
     for row in rows:
         status = row[5]
+        fmt = row[2]
+        if fmt in EXCLUDE_FORMATS:
+            continue
         nodes.append({
             "id": row[0],
             "title": row[1],
@@ -204,7 +220,8 @@ def get_universe(universe_id):
             "episodes": row[3],
             "progress": row[4],
             "status": status,
-            "color": get_status_color(status)
+            "color": get_status_color(status),
+            "cover": row[6]
         })
 
     # relations
@@ -227,20 +244,57 @@ def get_universe(universe_id):
     relations_rows = c.fetchall()
     edges = []
 
+    node_ids = {n["id"] for n in nodes}
+
     for row in relations_rows:
-        edges.append({
-            "source": row[0],
-            "target": row[1],
-            "type": row[2]
-        })
+        if row[0] in node_ids and row[1] in node_ids:
+            edges.append({
+                "source": row[0],
+                "target": row[1],
+                "type": row[2]
+            })
+
+    c.execute("SELECT cover_image, name FROM universes WHERE id = ?", (universe_id,))
+    cover_row = c.fetchone()
+    cover = cover_row[0] if cover_row else None
+    name = cover_row[1] if cover_row else ""
 
     conn.close()
 
+    main_node_ids = set()
+    for edge in edges:
+        if edge["type"] in ("SEQUEL", "PREQUEL"):
+            main_node_ids.add(edge["source"])
+            main_node_ids.add(edge["target"])
+
+    all_connected_ids = set()
+    for edge in edges:
+        all_connected_ids.add(edge["source"])
+        all_connected_ids.add(edge["target"])
+
+    for node in nodes:
+        if node["id"] not in all_connected_ids:
+            main_node_ids.add(node["id"])
+
+    main_nodes = [n for n in nodes if n["id"] in main_node_ids]
+    special_nodes = [n for n in nodes if n["id"] not in main_node_ids]
+
+    specials_grouped = {}
+    for node in special_nodes:
+        fmt = node["format"] or "OTHER"
+        if fmt not in specials_grouped:
+            specials_grouped[fmt] = []
+        specials_grouped[fmt].append(node)
+
     stats = calculate_universe_stats(nodes)
     return {
+        "name": name,
         "nodes": nodes,
         "edges": edges,
-        "stats": stats
+        "stats": stats,
+        "cover": cover,
+        "main_nodes": main_nodes,
+        "specials_grouped": specials_grouped
     }
 
 def get_node_by_anime_id(anime_id):
@@ -263,33 +317,85 @@ def get_node_by_anime_id(anime_id):
 
 def get_status_color(status):
     if status == "completed":
-        return "green"
+        return "#16a34a"
 
     if status == "watching":
-        return "yellow"
+        return "#ca8a04"
 
-    return "gray"
+    if status == "skip":
+        return "#2563eb"
+
+    return "#9ca3af"
 
 def get_all_universes():
     conn = get_conn()
-    c = conn.cursor
+    c = conn.cursor()
 
     c.execute("""
-    SELECT id, name, main_anime_id
+    SELECT id, name, main_anime_id, cover_image
     FROM universes
     """)
 
     rows = c.fetchall()
-    conn.close()
 
-    return [
-        {
+    universes = []
+    for r in rows:
+        universe_id = r[0]
+
+        c.execute("""
+        SELECT
+            anime_nodes.total_episodes,
+            progress.watched_episodes,
+            progress.status
+        FROM anime_nodes
+        LEFT JOIN progress ON anime_nodes.id = progress.node_id
+        WHERE anime_nodes.universe_id = ?
+        AND (
+            anime_nodes.format IS NULL
+            OR anime_nodes.format NOT IN ('MANGA', 'NOVEL', 'ONE_SHOT', 'MUSIC', 'MANHWA', 'MANHUA')
+        )
+        """, (universe_id,))
+
+        node_rows = c.fetchall()
+
+        total = 0
+        watched = 0
+        completed = 0
+        watching = 0
+        planned = 0
+
+        for n in node_rows:
+            if n[2] == "skip":
+                continue
+            total += n[0] or 0
+            watched += n[1] or 0
+            if n[2] == "completed":
+                completed += 1
+            elif n[2] == "watching":
+                watching += 1
+            else:
+                planned += 1
+
+        completion = round((watched / total) * 100, 1) if total > 0 else 0
+
+        if completed > 0 and planned == 0 and watching == 0:
+            overall_status = "completed"
+        elif watching > 0 or completed > 0:
+            overall_status = "watching"
+        else:
+            overall_status = "planned"
+
+        universes.append({
             "id": r[0],
             "name": r[1],
-            "main_anime_id": r[2]
-        }
-        for r in rows
-    ]
+            "main_anime_id": r[2],
+            "cover": r[3],
+            "completion": completion,
+            "status": overall_status
+        })
+
+    conn.close()
+    return universes
 
 def calculate_universe_stats(nodes):
     total_episodes = 0
@@ -299,6 +405,8 @@ def calculate_universe_stats(nodes):
     planned = 0
 
     for node in nodes:
+        if node["status"] == "skip":
+            continue
         episodes = node["episodes"] or 0
         progress = node["progress"] or 0
 
@@ -307,6 +415,8 @@ def calculate_universe_stats(nodes):
 
         status = node["status"]
 
+        if status == "skip":
+            continue
         if status == "completed":
             completed += 1
         elif status == "watching":
@@ -330,3 +440,166 @@ def calculate_universe_stats(nodes):
         "watching_count": watching,
         "planned_count": planned
     }
+def get_node(node_id):
+    conn = get_conn()
+    c = conn.cursor()
+
+    c.execute("""
+    SELECT
+        anime_nodes.id,
+        anime_nodes.title,
+        anime_nodes.format,
+        anime_nodes.total_episodes,
+        progress.watched_episodes,
+        progress.status
+    FROM anime_nodes
+    LEFT JOIN progress ON anime_nodes.id = progress.node_id
+    WHERE anime_nodes.id = ?
+    """, (node_id,))
+
+    row = c.fetchone()
+    conn.close()
+
+    if not row:
+        return None
+
+    return {
+        "id": row[0],
+        "title": row[1],
+        "format": row[2],
+        "episodes": row[3],
+        "progress": row[4],
+        "status": row[5]
+    }
+
+def update_node_cover(anime_id, cover):
+    conn = get_conn()
+    c = conn.cursor()
+
+    c.execute("""
+    UPDATE anime_nodes
+    SET cover_image = ?
+    WHERE anime_id = ? AND cover_image IS NULL
+    """, (cover, anime_id))
+
+    conn.commit()
+    conn.close()
+
+def delete_universe(universe_id):
+    conn = get_conn()
+    c = conn.cursor()
+
+    c.execute("""
+    DELETE FROM progress
+    WHERE node_id IN (
+        SELECT id FROM anime_nodes WHERE universe_id = ?
+    )
+    """, (universe_id,))
+
+    c.execute("""
+    DELETE FROM relations
+    WHERE from_node_id IN (
+        SELECT id FROM anime_nodes WHERE universe_id = ?
+    )
+    OR to_node_id IN (
+        SELECT id FROM anime_nodes WHERE universe_id = ?
+    )
+    """, (universe_id, universe_id))
+
+    c.execute("DELETE FROM anime_nodes WHERE universe_id = ?", (universe_id,))
+
+    c.execute("DELETE FROM universes WHERE id = ?", (universe_id,))
+
+    conn.commit()
+    conn.close()
+
+def find_anime_in_universes(anime_id):
+    conn = get_conn()
+    c = conn.cursor()
+
+    c.execute("""
+    SELECT
+        universes.id,
+        universes.name,
+        relations.relation_type
+    FROM anime_nodes
+    JOIN universes ON anime_nodes.universe_id = universes.id
+    LEFT JOIN relations ON (
+        relations.from_node_id = anime_nodes.id
+        OR relations.to_node_id = anime_nodes.id
+    )
+    WHERE anime_nodes.anime_id = ?
+    LIMIT 1
+    """, (anime_id,))
+
+    row = c.fetchone()
+    conn.close()
+
+    if not row:
+        return None
+
+    return {
+        "universe_id": row[0],
+        "universe_name": row[1],
+        "relation_type":  row[2]
+    }
+
+def toggle_skip(node_id):
+    conn = get_conn()
+    c = conn.cursor()
+
+    c.execute("""
+    SELECT status FROM progress
+    WHERE node_id = ?
+    """, (node_id,))
+
+    row = c.fetchone()
+    if not row:
+        conn.close()
+        return
+
+    new_status = "planned" if row[0] == "skip" else "skip"
+
+    c.execute("""
+    UPDATE progress
+    SET status = ?
+    WHERE node_id = ?
+    """, (new_status, node_id))
+
+    conn.commit()
+    conn.close()
+
+BACKUP_TABLES = ("universes", "anime_nodes", "relations", "progress")
+
+def export_all():
+    conn = get_conn()
+    c = conn.cursor()
+
+    data = {"version": 1}
+    for  tabel in BACKUP_TABLES:
+        c.execute(f"SELECT * FROM {table}")
+        cols = [d[0] for d in c.description]
+        data[table] = [dict(zip(cols, row)) for row in c.fetchall()]
+
+    conn.close()
+    return data
+
+def import_all(data):
+    conn = get_conn()
+    c = conn.cursor()
+
+    for table in reversed(BACKUP_TABLES):
+        c.execute(f"DELETE FROM {table}")
+
+    for table in BACKUP_TABLES:
+        allowed = {r[1] for r in c.execute(f"PRAGMA table_info({table})")}
+        for row in data.get(table, []):
+            cols = [k for k in row if k in allowed]
+            placeholders = ",".join("?" for _ in cols)
+            c.execute(
+                f"INSERT INTO {table} ({','.join(cols)}) VALUES ({placeholders})",
+                [row[k] for k in cols]
+            )
+
+    conn.commit()
+    conn.close()

@@ -4,7 +4,8 @@ from pydantic import BaseModel
 
 from anilist import (
     get_anime,
-    get_anime_by_id
+    get_anime_by_id,
+    search_anime_list
 )
 from db import (
     init_db,
@@ -13,8 +14,15 @@ from db import (
     add_relation,
     update_progress,
     get_universe,
+    get_node,
     get_node_by_anime_id,
-    get_all_universes
+    get_all_universes,
+    update_node_cover,
+    delete_universe,
+    find_anime_in_universes,
+    toggle_skip,
+    export_all,
+    import_all
 )
 
 app = FastAPI() # API gestartet
@@ -25,7 +33,7 @@ def startup():
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -35,16 +43,53 @@ class ProgressUpdate(BaseModel):
 
 class CreateUniverse(BaseModel):
     query: str
+    universe_name: str
 
 @app.get("/search") # Daten Lesen (wenn /serach geöffnet wird)
 def search_anime(query: str):   # Funktion bekommt einen Parameter (Anime-name)
     return get_anime(query)
 
+@app.get("/search/list")
+def search_list(query: str):
+    return {"results": search_anime_list(query)}
+
+@app.get("/search/relations")
+def search_relations(query: str):
+    anime = get_anime(query)
+    if not anime:
+        return {"main": None, "chain": []}
+
+    chain = []
+    for edge in anime["graph"]["edges"]:
+        rel_type = edge["relation_type"]
+        if rel_type in ["SEQUEL", "PREQUEL"]:
+            node = next(
+                (n for n in anime["graph"]["nodes"] if n["id"] == edge["target"]),
+                None
+            )
+            if node:
+                title = node["title"] if isinstance(node["title"], str) else (
+                    node["title"].get("english") or node["title"].get("romaji", "")
+                )
+
+                chain.append({
+                    "id": node["id"],
+                    "title": title,
+                    "relation_type": rel_type
+                })
+
+        return {
+            "main": {
+                "id": anime["id"],
+                "title": anime["title"]["english"] or anime["title"]["romaji"],
+            },
+            "chain": chain
+        }
+
 @app.post("/universe/create")
 def create_universe(data: CreateUniverse):
     anime = get_anime(data.query)
-    universe_name = anime["title"]["romaji"]
-    universe_id = get_or_create_universe(universe_name)
+    universe_id = get_or_create_universe(data.universe_name, anime.get("cover"))
 
     import_recrusive_universe(
         universe_id,
@@ -83,6 +128,12 @@ def import_recrusive_universe(
 
     visited.add(anime_id)
     anime = get_anime_by_id(anime_id)
+
+    if anime is None:
+        return
+
+    update_node_cover(anime_id, anime.get("cover"))
+
     graph = anime["graph"]
     node_map = {}
 
@@ -91,15 +142,20 @@ def import_recrusive_universe(
         node_id = add_anime_node(universe_id, {
             "id": node["id"],
             "title": {
-                "romaji": node["title"]
+                "english": node["title"] if isinstance(node["title"], str) else node["title"].get("english", ""),
+                "romaji": node["title"] if isinstance(node["title"], str) else node["title"].get("romaji", "")
             },
             "format": node["format"],
-            "episodes": node["episodes"]
+            "episodes": node["episodes"],
+            "cover": node.get("cover")
         })
 
         node_map[node["id"]] = node_id
 
     # relations speichern
+    SKIP_RELATIONS = {"CHARACTER", "OTHER", "CONTAINS", "COMPILATION"}
+    EXECLUDE_FORMATS = {"MANGA", "NOVEL", "ONE_SHOT", "MUSIC", "MANHWA", "MANHUA"}
+
     for edge in graph["edges"]:
         source_id = node_map.get(edge["source"])
         target_id = node_map.get(edge["target"])
@@ -112,6 +168,18 @@ def import_recrusive_universe(
             )
 
         # recursive crawl
+        if edge["relation_type"] in SKIP_RELATIONS:
+            continue
+
+        target_node = next(
+            (n for n in graph["nodes"] if n["id"] == edge["target"]),
+            None
+        )
+        target_format = (target_node or {}).get("format") or ""
+
+        if target_format.upper() in EXECLUDE_FORMATS:
+            continue
+
         import_recrusive_universe(
             universe_id,
             edge["target"],
@@ -124,38 +192,30 @@ def universes():
         "universes": get_all_universes()
     }
 
-def get_node(node_id):
-    conn = get_conn()
-    c = conn.cursor()
-
-    c.execute("""
-    SELECT
-        anime_nodes.id,
-        anime_nodes.title,
-        anime_nodes.format,
-        anime_nodes.total_episodes,
-        progress.watched_episodes,
-        progress.status
-    FROM anime_nodes
-    LEFT JOIN progress ON anime_nodes.id = progress.node_id
-    WHERE anime_nodes.id = ?
-    """, (node_id,))
-
-    row = c.fetchone()
-    conn.close()
-
-    if not row:
-        return None
-
-    return {
-        "id": row[0],
-        "title": row[1],
-        "format": row[2],
-        "episodes": row[3],
-        "progress": row[4],
-        "status": row[5]
-    }
-
 @app.get("/nodes/{node_id}")
 def node(node_id: int):
     return get_node(node_id)
+
+@app.delete("/universe/{universe_id}")
+def remove_universe(universe_id: int):
+    delete_universe(universe_id)
+    return {"message": "universe deleted", "universe_id": universe_id}
+
+@app.get("/search/exists")
+def check_anime_exists(anime_id: int):
+    result = find_anime_in_universes(anime_id)
+    return {"exists": result is not None, "universe": result}
+
+@app.patch("/node/{node_id}/skip")
+def skip_node(node_id: int):
+    toggle_skip(node_id)
+    return {"message": "skip toggled", "node_id": node_id}
+
+@app.get("/export")
+def export_backup():
+    return export_all()
+
+@app.post("/import")
+def import_backup(data: dict):
+    import_all(data)
+    return {"message": "backup imported"}
