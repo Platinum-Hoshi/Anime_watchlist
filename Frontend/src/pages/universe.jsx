@@ -208,7 +208,7 @@ export default function Universe({ id, onBack, onOpenUniverse }) {
                                         loadUniverse();
                                     }}
                                     onSkip={loadUniverse}
-                                    onRemove={loadUniverse()}
+                                    onRemove={loadUniverse}
                                 />
                             ))}
 
@@ -227,7 +227,7 @@ export default function Universe({ id, onBack, onOpenUniverse }) {
                                         loadUniverse();
                                     }}
                                     onSkip={loadUniverse}
-                                    onRemove={loadUniverse()}
+                                    onRemove={loadUniverse}
                                 />
                             ))}
                         </div>

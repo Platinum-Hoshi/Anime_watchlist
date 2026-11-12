@@ -279,7 +279,7 @@ def import_watchlist_backup(data: dict):
         raise HTTPException(status_code=400, detail=str(e))
     return {"message": "watchlist backup imported"}
 
-@app.get("/node/{node_id}/removal-review")
+@app.get("/node/{node_id}/removal-preview")
 def node_removal_preview(node_id:int):
     return {"nodes": get_removal_preview(node_id)}
 
