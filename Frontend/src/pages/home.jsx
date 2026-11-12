@@ -63,9 +63,19 @@ export default function Home({ onOpenUniverse }) {
         try { return localStorage.getItem("watchCollapsed") === "1"; } catch { return false; }
     });
 
+    // Info-Fenster bei den Suchergebnissen
+    const [hoverInfo, setHoverInfo] = useState(null);
+    const [pinnedInfo, setPinnedInfo] = useState(null);
+
     // Einstellungen
     const [showSettings, setShowSettings] = useState(false);
     const [settingsTab, setSettingsTab] = useState("backups");
+
+    useEffect(() => {
+        const onKey = e => { if (e.key === "Escape") setPinnedInfo(null); };
+        window.addEventListener("keydown", onKey);
+        return () => window.removeEventListener("keydown", onKey);
+    }, []);
 
     useEffect(() => {
         loadUniverses();
@@ -90,6 +100,8 @@ export default function Home({ onOpenUniverse }) {
             return;
         }
         setLoading(true);
+        setPinnedInfo(null);
+        setHoverInfo(null);
         try {
             const data = await searchAnimeList(searchQuery);
             setSuggestions(data.results || []);
@@ -125,6 +137,11 @@ export default function Home({ onOpenUniverse }) {
         setSuggestions([]);
         setSearched(false);
         loadUniverses();
+    }
+
+    function infoFor(e, item) {
+        const r = e.currentTarget.getBoundingClientRect();
+        return { item, top: r.top, left: r.right + 28 };
     }
 
     // Gelber Stern-Knopf: direkt zur Watchlist
@@ -421,6 +438,9 @@ export default function Home({ onOpenUniverse }) {
                         return (
                             <div
                                 key={s.id}
+                                onMouseEnter={e => setHoverInfo(infoFor(e, s))}
+                                onMouseLeave={() => setHoverInfo(null)}
+                                onClick={e => setPinnedInfo(pinnedInfo && pinnedInfo.item.id === s.id ? null : infoFor(e, s))}
                                 style={{
                                     display: "flex",
                                     alignItems: "center",
@@ -428,8 +448,9 @@ export default function Home({ onOpenUniverse }) {
                                     padding: "10px",
                                     marginBottom: "8px",
                                     background: "#fff",
-                                    border: "1px solid #e0e0e0",
-                                    borderRadius: "10px"
+                                    border: pinnedInfo && pinnedInfo.item.id === s.id ? "1px solid #ea580c" : "1px solid #e0e0e0",
+                                    borderRadius: "10px",
+                                    cursor: "pointer"
                                 }}
                             >
                                 {s.cover && (
@@ -447,14 +468,14 @@ export default function Home({ onOpenUniverse }) {
                                 </div>
                                 <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
                                     <button
-                                        onClick={() => handleSuggestionClick(s)}
+                                        onClick={e => { e.stopPropagation(); handleSuggestionClick(s); }}
                                         title="Als Universe hinzufügen"
                                         style={roundBtn("#16a34a", "#fff")}
                                     >
                                         +
                                     </button>
                                     <button
-                                        onClick={() => handleStar(s)}
+                                        onClick={e => { e.stopPropagation(); handleStar(s); }}
                                         disabled={inWatchlist}
                                         title={inWatchlist ? "Bereits in der Watchlist" : "Zur Watchlist hinzufügen"}
                                         style={{ ...roundBtn("#facc15", "#854d0e"), opacity: inWatchlist ? 0.4 : 1, cursor: inWatchlist ? "default" : "pointer" }}
@@ -470,8 +491,7 @@ export default function Home({ onOpenUniverse }) {
 
                 {/* ===== Mittlere Spalte ===== */}
                 <div style={{ flex: 1, minWidth: 0, padding: "24px" }}>
-            {/* Kopfzeile: Titel links, Umschalter in der Mitte */}
-            {/* Umschalter: immer genau in der Fenstermitte */}
+            {/* Umschalter: immer genau in der Fenstermitte, egal ob die Watchlist offen ist */}
             <div style={{ position: "absolute", top: "24px", left: "50%", transform: "translateX(-50%)", zIndex: 5 }}>
                 <div style={{ display: "flex", background: "#ffedd5", borderRadius: "10px", padding: "4px", boxShadow: "0 1px 4px rgba(0,0,0,0.08)" }}>
                     {[["universes", "Universen"], ["watchlist", "Watchlist"]].map(([key, label]) => (
@@ -494,6 +514,7 @@ export default function Home({ onOpenUniverse }) {
                         </button>
                     ))}
                 </div>
+
             </div>
             <div style={{ height: "64px" }} />
 
@@ -565,6 +586,58 @@ export default function Home({ onOpenUniverse }) {
                         )}
                     </div>
                 )}
+
+            {/* Info-Fenster zum Suchergebnis (Hover oder angeklickt) */}
+            {(pinnedInfo || hoverInfo) && (() => {
+                const info = pinnedInfo || hoverInfo;
+                const s = info.item;
+                const top = Math.max(8, Math.min(info.top, window.innerHeight - 340));
+                const statusText = {
+                    FINISHED: "Abgeschlossen",
+                    RELEASING: "Läuft",
+                    NOT_YET_RELEASED: "Noch nicht erschienen",
+                    CANCELLED: "Abgebrochen",
+                    HIATUS: "Pausiert"
+                }[s.status] || null;
+                const facts = [
+                    s.format,
+                    s.start_date || s.year,
+                    s.episodes ? `${s.episodes} Folgen` : null,
+                    statusText
+                ].filter(Boolean).join(" · ");
+                return (
+                    <div style={{
+                        position: "fixed",
+                        left: info.left,
+                        top,
+                        width: "340px",
+                        maxHeight: "320px",
+                        overflowY: "auto",
+                        boxSizing: "border-box",
+                        background: "#fff",
+                        border: "1px solid #fdba74",
+                        borderRadius: "12px",
+                        boxShadow: "0 8px 24px rgba(0,0,0,0.18)",
+                        padding: "14px 16px",
+                        zIndex: 60,
+                        pointerEvents: pinnedInfo ? "auto" : "none"
+                    }}>
+                        {pinnedInfo && (
+                            <button
+                                onClick={() => setPinnedInfo(null)}
+                                style={{ float: "right", border: "none", background: "transparent", cursor: "pointer", fontSize: "16px", color: "#9ca3af" }}
+                            >
+                                ✕
+                            </button>
+                        )}
+                        <div style={{ fontWeight: "700", fontSize: "15px", marginBottom: "4px" }}>{s.title}</div>
+                        <div style={{ fontSize: "12px", color: "#c2410c", fontWeight: "600", marginBottom: "10px" }}>{facts}</div>
+                        <div style={{ fontSize: "13px", color: "#374151", lineHeight: 1.5 }}>
+                            {s.description || "Keine Beschreibung vorhanden."}
+                        </div>
+                    </div>
+                );
+            })()}
 
             {/* Zahnrad unten links */}
             <button

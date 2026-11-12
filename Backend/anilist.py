@@ -1,6 +1,22 @@
+import re
 import requests
 
 ANILIST_URL = "https://graphql.anilist.co"
+
+def clean_description(text):
+    if not text:
+        return None
+    text = re.sub(r"<br\s*/?>", "\n", text, flags=re.IGNORECASE)
+    text = re.sub(r"<[^>]+>", "", text)
+    return text.strip() or None
+
+def format_date(date):
+    """AniList liefert {year, month, day}, einzelne Teile können fehlen."""
+    if not date or not date.get("year"):
+        return None
+    if date.get("month") and date.get("day"):
+        return f"{date['day']:02d}.{date['month']:02d}.{date['year']}"
+    return str(date["year"])
 
 def get_anime(name: str):
     query = """
@@ -205,6 +221,14 @@ def search_anime_list(name: str):
                 }
                 format
                 seasonYear
+                status
+                episodes
+                description(asHtml: false)
+                startDate {
+                    year
+                    month
+                    day
+                }
             }
         }
     }
@@ -230,7 +254,11 @@ def search_anime_list(name: str):
             "title": m["title"]["english"] or m["title"]["romaji"],
             "cover": (m.get("coverImage") or {}).get("large"),
             "format": m["format"],
-            "year": m["seasonYear"]
+            "year": m["seasonYear"],
+            "status": m.get("status"),
+            "episodes": m.get("episodes"),
+            "description": clean_description(m.get("description")),
+            "start_date": format_date(m.get("startDate"))
         }
         for m in media
     ]
