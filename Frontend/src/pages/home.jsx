@@ -137,6 +137,14 @@ export default function Home({ onOpenUniverse }) {
         setSuggestions([]);
         setSearched(false);
         loadUniverses();
+        loadWatchlist();
+    }
+
+    function handleUniverseButton(suggestion, inWatchlist) {
+      if (inWatchlist && !confirm(`"${suggestion.title}" ist in der Watchlist. Aud der Watchlist entfernen und als Universe hinzufügen?`)) {
+        return;
+      }
+      handleSuggestionClick(suggestion);
     }
 
     function infoFor(e, item) {
@@ -468,9 +476,9 @@ export default function Home({ onOpenUniverse }) {
                                 </div>
                                 <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
                                     <button
-                                        onClick={e => { e.stopPropagation(); handleSuggestionClick(s); }}
-                                        title="Als Universe hinzufügen"
-                                        style={roundBtn("#16a34a", "#fff")}
+                                        onClick={e => { e.stopPropagation(); handleUniverseButton(s, inWatchlist); }}
+                                        title={inWatchlist ? "Aus der Watchlist entfernen und als Universe hinzufügen" : "Als Universe hinzufügen"}
+                                        style={roundBtn(inWatchlist ? "#2563eb" : "#16a34a", "#fff")}
                                     >
                                         +
                                     </button>

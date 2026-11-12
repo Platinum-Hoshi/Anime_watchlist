@@ -713,3 +713,24 @@ def import_all(data, tables=BACKUP_TABLES):
 
     conn.commit()
     conn.close()
+
+def remove_watchlist_items_in_universe(universe_id):
+    conn = get_conn()
+    c = conn.cursor()
+
+    c.execute("""
+    DELETE FROM watchlis_items
+    WHERE anime_id IN (
+        SELECT anime_id FROM anime_nodes WHERE unverse_id = ?
+    )
+    """, (universe_id,))
+
+    c.execute("""
+    DELETE FROM watchlist
+    WHERE id NOT IN (
+        SELECT DISTINCT watchlist_id FROM watchlist_items WHERE watchlist_id IS NOT NULL
+    )
+    """)
+
+    conn.commit()
+    conn.close()
