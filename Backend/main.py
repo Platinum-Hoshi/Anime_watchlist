@@ -26,7 +26,8 @@ from db import (
     add_to_watchlist,
     get_watchlist,
     remove_watchlist_item,
-    delete_watchlist_tile
+    delete_watchlist_tile,
+    WATCHLIST_TABLES,
 )
 
 app = FastAPI() # API gestartet
@@ -252,5 +253,20 @@ def export_backup():
 
 @app.post("/import")
 def import_backup(data: dict):
-    import_all(data)
+    try:
+        import_all(data)
+    expect ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     return {"message": "backup imported"}
+
+@app.get("/export/watchlist")
+def export_watchlist_backup():
+    return export_all(WATCHLIST_TABLES)
+
+@app.post("/import/watchlist")
+def import_watchlist_backup(data: dict):
+    try:
+        import_all(data, WATCHLIST_TABLES)
+    except ValueError¨as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    return {"message": "watchlist backup imported"}

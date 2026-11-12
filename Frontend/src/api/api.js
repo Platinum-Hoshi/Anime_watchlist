@@ -105,3 +105,18 @@ export async function deleteWatchlistTile(watchlistId) {
   const res = await fetch(`${BASE_URL}/watchlist/${watchlistId}`, { method: "DELETE" });
   return res.json();
 }
+
+export async function exportWatchlistBackup() {
+  const res = await fetch(`${BASE_URL}/export/watchlist`);
+  return res.json();
+}
+
+export async function importWatchlistBackup(data) {
+  const res = await fetch(`${BASE_URL}/import/watchlist`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) throw new Error("Import fehlgeschlagen");
+  return res.json();
+}
