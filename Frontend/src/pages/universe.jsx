@@ -3,7 +3,7 @@ import { getUniverse, getUniverses, updateProgress, deleteUniverse } from "../ap
 import Graph from "../components/graph";
 import AnimeBar from "../components/animebar";
 import UniverseList from "../components/universelist";
-import { sideStyle, useNarrow } from "../components/styles";
+import { sideStyle } from "../components/styles";
 
 function SpecialGroup({ format, nodes, allNodes, edges, onProgressChange, onSkip }) {
     const [open, setOpen] = useState(false);
@@ -54,7 +54,6 @@ function SpecialGroup({ format, nodes, allNodes, edges, onProgressChange, onSkip
 export default function Universe({ id, onBack, onOpenUniverse }) {
     const [data, setData] = useState(null);
     const [universes, setUniverses] = useState([]);
-    const narrow = useNarrow();
 
     useEffect(() => {
         loadUniverse();
@@ -79,7 +78,8 @@ export default function Universe({ id, onBack, onOpenUniverse }) {
     return (
         <div style={{
             display: "flex",
-            flexDirection: narrow ? "column" : "row",
+            flexDirection: "row",
+            minWidth: "900px",
             alignItems: "stretch",
             minHeight: "100vh",
             background: "#fffaf5",
@@ -87,7 +87,7 @@ export default function Universe({ id, onBack, onOpenUniverse }) {
         }}>
 
             {/* Linke Spalte: Meine Universen */}
-            <div style={sideStyle(narrow, "left")}>
+            <div style={sideStyle("left")}>
                 <UniverseList
                     universes={universes}
                     onOpenUniverse={onOpenUniverse}

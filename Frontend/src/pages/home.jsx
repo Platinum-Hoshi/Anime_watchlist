@@ -6,13 +6,15 @@ import {
     checkAnimeExists,
     exportBackup,
     importBackup,
+    exportWatchlistBackup,
+    importWatchlistBackup,
     getWatchlist,
     addToWatchlist,
     removeWatchlistItem,
     deleteWatchlistTile
 } from "../api/api";
 import UniverseList from "../components/universelist";
-import { colTitle, inputStyle, sideStyle, useNarrow } from "../components/styles";
+import { colTitle, inputStyle, sideStyle } from "../components/styles";
 
 const roundBtn = (bg, color, borderColor = "transparent") => ({
     width: "32px",
@@ -57,7 +59,9 @@ export default function Home({ onOpenUniverse }) {
     const [busyTile, setBusyTile] = useState(null);
 
     // Layout (schmale Bildschirme stapeln die Spalten)
-    const narrow = useNarrow();
+    const [watchCollapsed, setWatchCollapsed] = useState(() => {
+        try { return localStorage.getItem("watchCollapsed") === "1"; } catch { return false; }
+    });
 
     // Einstellungen
     const [showSettings, setShowSettings] = useState(false);
@@ -165,36 +169,98 @@ export default function Home({ onOpenUniverse }) {
         loadWatchlist();
     }
 
+    function toggleWatchCollapsed() {
+        const next = !watchCollapsed;
+        setWatchCollapsed(next);
+        try { localStorage.setItem("watchCollapsed", next ? "1" : "0"); } catch { /* ignorieren */ }
+    }
+
     // ---------- Backup ----------
-    async function handleExport() {
-        const data = await exportBackup();
+    function downloadJson(data, namePrefix) {
         const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = `anime-watchlist-backup-${new Date().toISOString().slice(0, 10)}.json`;
+        a.download = `${namePrefix}-${new Date().toISOString().slice(0, 10)}.json`;
         a.click();
         URL.revokeObjectURL(url);
     }
 
-    async function handleImport(e) {
+    async function handleExport() {
+        downloadJson(await exportBackup(), "anime-watchlist-backup");
+    }
+
+    async function handleExportWatchlist() {
+        downloadJson(await exportWatchlistBackup(), "anime-watchlist-nur-watchlist");
+    }
+
+    // Gemeinsame Import-Logik: Datei lesen, bestaetigen, importieren, neu laden
+    async function readAndImport(e, importFn, confirmText) {
         const file = e.target.files[0];
         if (!file) return;
 
-        if (!confirm("Alle aktuellen Daten werden durch das Backup ersetzt. Fortfahren?")) {
+        if (!confirm(confirmText)) {
             e.target.value = "";
             return;
         }
 
         try {
             const data = JSON.parse(await file.text());
-            await importBackup(data);
+            await importFn(data);
             loadUniverses();
             loadWatchlist();
         } catch {
             alert("Das Backup konnte nicht gelesen werden.");
         }
         e.target.value = "";
+    }
+
+    function handleImport(e) {
+        readAndImport(e, importBackup, "Alle aktuellen Daten werden durch das Backup ersetzt. Fortfahren?");
+    }
+
+    function handleImportWatchlist(e) {
+        readAndImport(e, importWatchlistBackup, "Die aktuelle Watchlist wird durch das Backup ersetzt (Universen bleiben unverändert). Fortfahren?");
+    }
+
+    function renderBackupSection(title, text, onExport, onImport) {
+        return (
+            <div style={{ marginBottom: "24px" }}>
+                <div style={{ fontWeight: "600", fontSize: "15px", marginBottom: "4px" }}>{title}</div>
+                <p style={{ fontSize: "13px", color: "#64748b", margin: "0 0 10px 0" }}>{text}</p>
+                <div style={{ display: "flex", gap: "8px" }}>
+                    <button
+                        onClick={onExport}
+                        style={{
+                            padding: "8px 16px",
+                            borderRadius: "8px",
+                            border: "none",
+                            background: "#ea580c",
+                            color: "#fff",
+                            cursor: "pointer",
+                            fontWeight: "600",
+                            fontSize: "13px"
+                        }}
+                    >
+                        Backup erstellen
+                    </button>
+                    <label
+                        style={{
+                            padding: "8px 16px",
+                            borderRadius: "8px",
+                            border: "1px solid #fdba74",
+                            background: "#fff",
+                            cursor: "pointer",
+                            fontWeight: "600",
+                            fontSize: "13px"
+                        }}
+                    >
+                        Backup laden
+                        <input type="file" accept="application/json" onChange={onImport} style={{ display: "none" }} />
+                    </label>
+                </div>
+            </div>
+        );
     }
 
     // ---------- abgeleitete Daten ----------
@@ -296,11 +362,11 @@ export default function Home({ onOpenUniverse }) {
 
     // ---------- Render ----------
     return (
-        <div style={{ display: "flex", flexDirection: narrow ? "column" : "row", alignItems: "stretch", minHeight: "100vh", background: "#fffaf5", fontFamily: "sans-serif" }}>
+        <div style={{ display: "flex", flexDirection: "row", alignItems: "stretch", minHeight: "100vh", minWidth: "900px", background: "#fffaf5", fontFamily: "sans-serif" }}>
 
 
                 {/* ===== Linke Spalte: Suche ===== */}
-                <div style={sideStyle(narrow, "left")}>
+                <div style={sideStyle("left")}>
                     <h3 style={colTitle}>Suche</h3>
                     <div style={{ display: "flex", gap: "8px", marginBottom: "12px" }}>
                         <input
@@ -459,8 +525,30 @@ export default function Home({ onOpenUniverse }) {
 
                 {/* ===== Rechte Spalte: Watchlist-Übersicht (nur in der Universen-Ansicht) ===== */}
                 {view === "universes" && (
-                    <div style={sideStyle(narrow, "right")}>
-                        <h3 style={colTitle}>Watchlist</h3>
+                    <div style={sideStyle("right", watchCollapsed)}>
+                        {watchCollapsed ? (
+                            <div
+                                onClick={toggleWatchCollapsed}
+                                title="Watchlist ausklappen"
+                                style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "14px", cursor: "pointer" }}
+                            >
+                                <span style={{ fontSize: "18px", color: "#ea580c", fontWeight: "700" }}>«</span>
+                                <span style={{ writingMode: "vertical-rl", color: "#c2410c", fontWeight: "600", fontSize: "14px" }}>
+                                    Watchlist ({watchlist.length})
+                                </span>
+                            </div>
+                        ) : (
+                            <>
+                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+                                    <h3 style={{ ...colTitle, margin: 0 }}>Watchlist</h3>
+                                    <button
+                                        onClick={toggleWatchCollapsed}
+                                        title="Watchlist einklappen"
+                                        style={{ border: "1px solid #fdba74", background: "#fff", color: "#ea580c", borderRadius: "8px", cursor: "pointer", fontSize: "16px", fontWeight: "700", padding: "2px 10px" }}
+                                    >
+                                        »
+                                    </button>
+                                </div>
                         <input
                             type="text"
                             value={watchSearch}
@@ -474,6 +562,8 @@ export default function Home({ onOpenUniverse }) {
                             </p>
                         )}
                         {visibleWatchlist.map(renderTile)}
+                            </>
+                        )}
                     </div>
                 )}
 
@@ -554,46 +644,18 @@ export default function Home({ onOpenUniverse }) {
                             {settingsTab === "backups" && (
                                 <>
                                     <h2 style={{ marginTop: 0 }}>Backups</h2>
-                                    <p style={{ fontSize: "13px", color: "#64748b" }}>
-                                        Ein Backup enthält alle Universen, deinen Fortschritt und die Watchlist.
-                                        Beim Laden werden alle aktuellen Daten ersetzt.
-                                    </p>
-                                    <div style={{ display: "flex", gap: "8px", marginTop: "16px" }}>
-                                        <button
-                                            onClick={handleExport}
-                                            style={{
-                                                padding: "8px 16px",
-                                                borderRadius: "8px",
-                                                border: "none",
-                                                background: "#ea580c",
-                                                color: "#fff",
-                                                cursor: "pointer",
-                                                fontWeight: "600",
-                                                fontSize: "13px"
-                                            }}
-                                        >
-                                            Backup erstellen
-                                        </button>
-                                        <label
-                                            style={{
-                                                padding: "8px 16px",
-                                                borderRadius: "8px",
-                                                border: "1px solid #d1d5db",
-                                                background: "#fff",
-                                                cursor: "pointer",
-                                                fontWeight: "600",
-                                                fontSize: "13px"
-                                            }}
-                                        >
-                                            Backup laden
-                                            <input
-                                                type="file"
-                                                accept="application/json"
-                                                onChange={handleImport}
-                                                style={{ display: "none" }}
-                                            />
-                                        </label>
-                                    </div>
+                                    {renderBackupSection(
+                                        "Alles",
+                                        "Universen, Fortschritt und Watchlist. Beim Laden werden alle aktuellen Daten ersetzt.",
+                                        handleExport,
+                                        handleImport
+                                    )}
+                                    {renderBackupSection(
+                                        "Nur Watchlist",
+                                        "Nur die Watchlist. Beim Laden wird nur sie ersetzt, deine Universen bleiben unverändert.",
+                                        handleExportWatchlist,
+                                        handleImportWatchlist
+                                    )}
                                 </>
                             )}
 

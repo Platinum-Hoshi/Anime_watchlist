@@ -1,5 +1,3 @@
-import { useEffect, useState } from "react";
-
 export const colTitle = {
     margin: "0 0 12px 0",
     fontSize: "15px",
@@ -15,26 +13,18 @@ export const inputStyle = {
     boxSizing: "border-box"
 };
 
-// Weisse Seitenspalte (links/rechts) mit Trennlinie, volle Hoehe
-export const sideStyle = (narrow, side) => ({
-    width: narrow ? "auto" : "380px",
+// Weisse Seitenspalte (links/rechts) mit Trennlinie, volle Hoehe.
+// Die Breite schrumpft mit dem Fenster (min 240px, max 380px); eingeklappt: schmaler Streifen.
+export const sideStyle = (side, collapsed = false) => ({
+    width: collapsed ? "48px" : "clamp(240px, 25vw, 380px)",
     flexShrink: 0,
     boxSizing: "border-box",
     background: "#fff",
-    padding: "24px 20px 80px 20px",
+    padding: collapsed ? "24px 0 80px 0" : "24px 20px 80px 20px",
     [side === "left" ? "borderRight" : "borderLeft"]: "1px solid #fed7aa",
-    ...(narrow ? {} : { position: "sticky", top: 0, height: "100vh", overflowY: "auto", alignSelf: "flex-start" })
+    position: "sticky",
+    top: 0,
+    height: "100vh",
+    overflowY: "auto",
+    alignSelf: "flex-start"
 });
-
-// true, wenn das Fenster schmal ist (Spalten werden dann gestapelt)
-export function useNarrow(breakpoint = 1000) {
-    const [narrow, setNarrow] = useState(window.innerWidth < breakpoint);
-
-    useEffect(() => {
-        const onResize = () => setNarrow(window.innerWidth < breakpoint);
-        window.addEventListener("resize", onResize);
-        return () => window.removeEventListener("resize", onResize);
-    }, [breakpoint]);
-
-    return narrow;
-}
