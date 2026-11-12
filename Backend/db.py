@@ -734,3 +734,79 @@ def remove_watchlist_items_in_universe(universe_id):
 
     conn.commit()
     conn.close()
+
+# Formate, die im Universe nicht angezeigt werden
+HIDDEN_FORMATS = {"MANGA", "NOVEL", "ONE_SHOT", "MUSIC", "MANHWA", "MANHUA"}
+
+def _removal_plan(c, node_id):
+    """Welche Nodes würden entfernt? Verändert nichts.
+    Entfernt wird der Node selbst plus alles, was danach nicht mehr mit dem
+    größten zusammenhängenden Rest des Universe verbunden ist."""
+    c.execute("SELECT universe_id FROM anime_nodes WHERE id = ?", (node_id,))
+    row = c.fetchone()
+    if not row:
+        return []
+
+    c.execute("SELECT id FROM anime_nodes WHERE universe_id = ?", (row[0],))
+    remaining = {r[0] for r in c.fetchall()} - {node_id}
+
+    neighbors = {n: set() for n in remaining}
+    c.execute("SELECT from_node_id, to_node_id FROM relations")
+    for a, b in c.fetchall():
+        if a in neighbors and b in neighbors:
+            neighbors[a].add(b)
+            neighbors[b].add(a)
+
+    # zusammenhängende Gruppen suchen
+    seen = set()
+    groups = []
+    for start in sorted(remaining):
+        if start in seen:
+            continue
+        group = set()
+        stack = [start]
+        while stack:
+            current = stack.pop()
+            if current in group:
+                continue
+            group.add(current)
+            stack.extend(neighbors[current] - group)
+        seen |= group
+        groups.append(group)
+
+    to_remove = [node_id]
+    if groups:
+        keep = max(groups, key=lambda g: (len(g), -min(g)))
+        for group in groups:
+            if group is not keep:
+                to_remove.extend(sorted(group))
+
+    return to_remove
+
+def get_removal_preview(node_id):
+    conn = get_conn()
+    c = conn.cursor()
+
+    preview = []
+    for i in _removal_plan(c, node_id):
+        c.execute("SELECT id, title, format FROM anime_nodes WHERE id = ?", (i,))
+        r = c.fetchone()
+        if r and r[2] not in HIDDEN_FORMATS:
+            preview.append({"id": r[0], "title": r[1]})
+
+    conn.close()
+    return preview
+
+def remove_node_from_universe(node_id):
+    conn = get_conn()
+    c = conn.cursor()
+
+    ids = _removal_plan(c, node_id)
+    for i in ids:
+        c.execute("DELETE FROM progress WHERE node_id = ?", (i,))
+        c.execute("DELETE FROM relations WHERE from_node_id = ? OR to_node_id = ?", (i, i))
+        c.execute("DELETE FROM anime_nodes WHERE id = ?", (i,))
+
+    conn.commit()
+    conn.close()
+    return ids

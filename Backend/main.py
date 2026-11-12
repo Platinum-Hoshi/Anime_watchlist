@@ -29,6 +29,8 @@ from db import (
     delete_watchlist_tile,
     WATCHLIST_TABLES,
     remove_watchlist_items_in_universe,
+    get_removal_preview,
+    remove_node_from_universe
 )
 
 app = FastAPI() # API gestartet
@@ -276,3 +278,12 @@ def import_watchlist_backup(data: dict):
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     return {"message": "watchlist backup imported"}
+
+@app.get("/node/{node_id}/removal-review")
+def node_removal_preview(node_id:int):
+    return {"nodes": get_removal_preview(node_id)}
+
+@app.delete("/node/{node_id}")
+def remove_node(node_id: int):
+    removed = remove_node_from_universe(node_id)
+    return {"removed": removed}

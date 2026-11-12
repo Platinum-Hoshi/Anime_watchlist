@@ -1,6 +1,6 @@
 import { useState } from "react";
 import EpisodeList from "./episodelist";
-import { toggleSkip } from "../api/api";
+import { toggleSkip, getNodeRemovalPreview, removeNode } from "../api/api";
 
 function RelationSection({ relations, nodes, node }) {
     const [openCat, setOpenCat] = useState({});
@@ -83,9 +83,27 @@ export default function AnimeBar({
     edges,
     nodes,
     onProgressChange,
-    onSkip
+    onSkip,
+    onRemove
 }) {
     const [open, setOpen] = useState(false);
+
+    async function handleRemove(e) {
+        e.stopPropagation();
+        const { nodes: affected } = await getNodeRemovalPreview(node.id);
+        const others = affected.filter(n => n.id !== node.id);
+
+        let text = `"${node.title}" aus diesem Universum entfernen?`;
+        if (others.length > 0) {
+          text += `\n\nDabei werden auch ${others.length} Einträge entfernt, die danach nirgends mehr verbunden wären:\n- ` + others.map(n => n.title).join("\n- ");
+        }
+
+        if (!confirm(text)) return;
+
+        await removeNode(node.id);
+        onRemove();
+    }
+
     const relations = edges.filter(
         edge =>
             edge.source === node.id
@@ -190,7 +208,27 @@ export default function AnimeBar({
                 >
                     {node.status === "skip" ? "↩ Unskip" : "Skip"}
                 </button>
-                
+
+                {onRemove && (
+                    <button
+                        onClick={handleRemove}
+                        title="Aus diesem Universe entfernen"
+                        style={{
+                            padding: "6px 14px",
+                            borderRadius: "8px",
+                            border: "1px solid #fca5a5",
+                            background: "#fff",
+                            color: "#ef4444",
+                            cursor: "pointer",
+                            fontSize: "13px",
+                            fontWeight: "500",
+                            marginRight: "12px"
+                        }}
+                    >
+                        Entfernen
+                    </button>
+                )}
+
                 <span>
                     {open ? "▲" : "▼"}
                 </span>

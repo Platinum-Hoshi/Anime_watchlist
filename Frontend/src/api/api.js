@@ -120,3 +120,12 @@ export async function importWatchlistBackup(data) {
   if (!res.ok) throw new Error("Import fehlgeschlagen");
   return res.json();
 }
+
+export async function getNodeRemovalPreview(nodeId) {
+  const res = await fetch(`${BASE_URL}/node/${nodeId}/removal-preview`);
+}
+
+export async function removeNode(nodeId) {
+  const res = await fetch(`${BASE_URL}/node/${nodeId}`, { method: "DELETE" });
+  return res.json();
+}

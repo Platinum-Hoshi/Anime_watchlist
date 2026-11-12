@@ -5,7 +5,7 @@ import AnimeBar from "../components/animebar";
 import UniverseList from "../components/universelist";
 import { sideStyle } from "../components/styles";
 
-function SpecialGroup({ format, nodes, allNodes, edges, onProgressChange, onSkip }) {
+function SpecialGroup({ format, nodes, allNodes, edges, onProgressChange, onSkip, onRemove }) {
     const [open, setOpen] = useState(false);
 
     return (
@@ -43,6 +43,7 @@ function SpecialGroup({ format, nodes, allNodes, edges, onProgressChange, onSkip
                             edges={edges}
                             onProgressChange={onProgressChange}
                             onSkip={onSkip}
+                            onRemove={onRemove}
                         />
                     ))}
                 </div>
@@ -207,6 +208,7 @@ export default function Universe({ id, onBack, onOpenUniverse }) {
                                         loadUniverse();
                                     }}
                                     onSkip={loadUniverse}
+                                    onRemove={loadUniverse()}
                                 />
                             ))}
 
@@ -225,6 +227,7 @@ export default function Universe({ id, onBack, onOpenUniverse }) {
                                         loadUniverse();
                                     }}
                                     onSkip={loadUniverse}
+                                    onRemove={loadUniverse()}
                                 />
                             ))}
                         </div>
