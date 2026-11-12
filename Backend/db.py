@@ -675,13 +675,14 @@ def delete_watchlist_tile(watchlist_id):
     conn.close()
 
 BACKUP_TABLES = ("universes", "anime_nodes", "relations", "progress", "watchlist", "watchlist_items")
+WATCHLIST_TABLES = ("watchlist", "watchlist_items")
 
-def export_all():
+def export_all(tables=BACKUP_TABLES):
     conn = get_conn()
     c = conn.cursor()
 
     data = {"version": 1}
-    for  table in BACKUP_TABLES:
+    for table in tables:
         c.execute(f"SELECT * FROM {table}")
         cols = [d[0] for d in c.description]
         data[table] = [dict(zip(cols, row)) for row in c.fetchall()]
@@ -689,16 +690,20 @@ def export_all():
     conn.close()
     return data
 
-def import_all(data):
+def import_all(data, tables=BACKUP_TABLES):
+    present = [t for t in tables if t in data]
+    if not present:
+        raise ValueError("Das Backup enthält keine passenden Daten.")
+
     conn = get_conn()
     c = conn.cursor()
 
-    for table in reversed(BACKUP_TABLES):
+    for table in reversed(present):
         c.execute(f"DELETE FROM {table}")
 
-    for table in BACKUP_TABLES:
+    for table in present:
         allowed = {r[1] for r in c.execute(f"PRAGMA table_info({table})")}
-        for row in data.get(table, []):
+        for row in data[table]:
             cols = [k for k in row if k in allowed]
             placeholders = ",".join("?" for _ in cols)
             c.execute(
