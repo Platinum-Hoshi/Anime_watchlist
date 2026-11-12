@@ -255,7 +255,7 @@ def export_backup():
 def import_backup(data: dict):
     try:
         import_all(data)
-    expect ValueError as e:
+    except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     return {"message": "backup imported"}
 
