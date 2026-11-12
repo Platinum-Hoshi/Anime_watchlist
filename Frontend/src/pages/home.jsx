@@ -11,6 +11,8 @@ import {
     removeWatchlistItem,
     deleteWatchlistTile
 } from "../api/api";
+import UniverseList from "../components/universelist";
+import { colTitle, inputStyle, sideStyle, useNarrow } from "../components/styles";
 
 const roundBtn = (bg, color, borderColor = "transparent") => ({
     width: "32px",
@@ -30,32 +32,9 @@ const roundBtn = (bg, color, borderColor = "transparent") => ({
     padding: 0
 });
 
-const sideStyle = (narrow, side) => ({
-    width: narrow ? "auto" : "380px",
-    flexShrink: 0,
-    boxSizing: "border-box",
-    background: "#fff",
-    padding: "24px 20px 80px 20px",
-    [side === "left" ? "borderRight" : "borderLeft"]: "1px solid #fed7aa",
-    ...(narrow ? {} : { position: "sticky", top: 0, height: "100vh", overflowY: "auto", alignSelf: "flex-start" })
-});
-
-const colTitle = { margin: "0 0 12px 0", fontSize: "15px", color: "#c2410c", fontWeight: "600" };
-
-const inputStyle = {
-    padding: "9px 12px",
-    borderRadius: "8px",
-    border: "1px solid #fdba74",
-    fontSize: "14px",
-    boxSizing: "border-box"
-};
-
 export default function Home({ onOpenUniverse }) {
     // Universen
     const [universes, setUniverses] = useState([]);
-    const [statusFilter, setStatusFilter] = useState("all");
-    const [nameFilter, setNameFilter] = useState("");
-    const [sortBy, setSortBy] = useState("default");
 
     // Suche
     const [query, setQuery] = useState("");
@@ -78,17 +57,11 @@ export default function Home({ onOpenUniverse }) {
     const [busyTile, setBusyTile] = useState(null);
 
     // Layout (schmale Bildschirme stapeln die Spalten)
-    const [narrow, setNarrow] = useState(window.innerWidth < 1000);
+    const narrow = useNarrow();
 
     // Einstellungen
     const [showSettings, setShowSettings] = useState(false);
     const [settingsTab, setSettingsTab] = useState("backups");
-
-    useEffect(() => {
-        const onResize = () => setNarrow(window.innerWidth < 1000);
-        window.addEventListener("resize", onResize);
-        return () => window.removeEventListener("resize", onResize);
-    }, []);
 
     useEffect(() => {
         loadUniverses();
@@ -226,16 +199,6 @@ export default function Home({ onOpenUniverse }) {
 
     // ---------- abgeleitete Daten ----------
     const watchlistAnimeIds = new Set(watchlist.flatMap(t => t.items.map(i => i.anime_id)));
-
-    const visibleUniverses = universes
-        .filter(u => statusFilter === "all" || u.status === statusFilter)
-        .filter(u => u.name.toLowerCase().includes(nameFilter.trim().toLowerCase()))
-        .sort((a, b) => {
-            if (sortBy === "name") return a.name.localeCompare(b.name);
-            if (sortBy === "percent_desc") return b.completion - a.completion;
-            if (sortBy === "percent_asc") return a.completion - b.completion;
-            return 0;
-        });
 
     const visibleWatchlist = watchlist.filter(t => {
         const q = watchSearch.trim().toLowerCase();
@@ -471,95 +434,7 @@ export default function Home({ onOpenUniverse }) {
 
 
                     {view === "universes" && (
-                        <>
-                            <h3 style={colTitle}>Meine Universen</h3>
-
-                            {/* Filter */}
-                            <div style={{ display: "flex", gap: "8px", marginBottom: "12px", flexWrap: "wrap" }}>
-                                <input
-                                    type="text"
-                                    value={nameFilter}
-                                    onChange={e => setNameFilter(e.target.value)}
-                                    placeholder="Nach Name filtern..."
-                                    style={{ ...inputStyle, flex: "1 1 160px" }}
-                                />
-                                <select
-                                    value={statusFilter}
-                                    onChange={e => setStatusFilter(e.target.value)}
-                                    style={inputStyle}
-                                >
-                                    <option value="all">Alle Status</option>
-                                    <option value="planned">Geplant</option>
-                                    <option value="watching">Am Schauen</option>
-                                    <option value="completed">Fertig</option>
-                                </select>
-                                <select
-                                    value={sortBy}
-                                    onChange={e => setSortBy(e.target.value)}
-                                    style={inputStyle}
-                                >
-                                    <option value="default">Standard-Reihenfolge</option>
-                                    <option value="name">Name A–Z</option>
-                                    <option value="percent_desc">Fortschritt hoch → tief</option>
-                                    <option value="percent_asc">Fortschritt tief → hoch</option>
-                                </select>
-                            </div>
-
-                            {visibleUniverses.length === 0 && (
-                                <p style={{ color: "#888", fontSize: "13px" }}>
-                                    {universes.length === 0 ? "Noch keine Universen. Suche links einen Anime und klicke auf +." : "Kein Universe passt zu den Filtern."}
-                                </p>
-                            )}
-
-                            {visibleUniverses.map(u => (
-                                <div
-                                    key={u.id}
-                                    onClick={() => onOpenUniverse(u.id)}
-                                    style={{
-                                        padding: "16px",
-                                        marginBottom: "10px",
-                                        background: u.status === "completed" ? "#f0fdf4" : u.status === "watching" ? "#fefce8" : "#f8fafc",
-                                        border: u.status === "completed" ? "1px solid #6ee7b7" : u.status === "watching" ? "1px solid #fde047" : "1px solid #d1d5db",
-                                        borderRadius: "12px",
-                                        boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
-                                        display: "flex",
-                                        alignItems: "center",
-                                        gap: "16px",
-                                        cursor: "pointer"
-                                    }}
-                                >
-                                    <div style={{ display: "flex", alignItems: "center", gap: "16px", flex: 2, minWidth: 0 }}>
-                                        {u.cover && (
-                                            <img
-                                                src={u.cover}
-                                                alt={u.name}
-                                                style={{ width: "48px", height: "68px", objectFit: "cover", borderRadius: "6px", flexShrink: 0 }}
-                                            />
-                                        )}
-                                        <h3 style={{ margin: 0 }}>{u.name}</h3>
-                                    </div>
-
-                                    <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "flex-end", gap: "10px" }}>
-                                        <span style={{
-                                            display: "inline-block",
-                                            padding: "6px 12px",
-                                            borderRadius: "8px",
-                                            fontSize: "13px",
-                                            fontWeight: "500",
-                                            border: "1px solid",
-                                            borderColor: u.status === "completed" ? "#6ee7b7" : u.status === "watching" ? "#fde047" : "#d1d5db",
-                                            background: u.status === "completed" ? "#6ee7b7" : u.status === "watching" ? "#fef9c3" : "#f1f5f9",
-                                            color: u.status === "completed" ? "#065f46" : u.status === "watching" ? "#854d0e" : "#475569"
-                                        }}>
-                                            {u.status === "completed" ? "Fertig" : u.status === "watching" ? "Am Schauen" : "Geplant"}
-                                        </span>
-                                        <span style={{ fontSize: "13px", color: "#888", fontWeight: "500", minWidth: "44px", textAlign: "right" }}>
-                                            {u.completion}%
-                                        </span>
-                                    </div>
-                                </div>
-                            ))}
-                        </>
+                        <UniverseList universes={universes} onOpenUniverse={onOpenUniverse} />
                     )}
 
                     {view === "watchlist" && (
