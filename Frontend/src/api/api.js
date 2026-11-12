@@ -49,7 +49,7 @@ export async function deleteUniverse(id) {
     const res = await fetch(`${BASE_URL}/universe/${id}`, {
         method: "DELETE"
     });
-    return res.json
+  return res.json();
 }
 
 export async function checkAnimeExists(animeId) {
@@ -123,6 +123,7 @@ export async function importWatchlistBackup(data) {
 
 export async function getNodeRemovalPreview(nodeId) {
   const res = await fetch(`${BASE_URL}/node/${nodeId}/removal-preview`);
+  return res.json();
 }
 
 export async function removeNode(nodeId) {
