@@ -267,6 +267,6 @@ def export_watchlist_backup():
 def import_watchlist_backup(data: dict):
     try:
         import_all(data, WATCHLIST_TABLES)
-    except ValueError¨as e:
+    except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     return {"message": "watchlist backup imported"}
