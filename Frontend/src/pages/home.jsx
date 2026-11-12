@@ -362,11 +362,12 @@ export default function Home({ onOpenUniverse }) {
 
     // ---------- Render ----------
     return (
-        <div style={{ display: "flex", flexDirection: "row", alignItems: "stretch", minHeight: "100vh", minWidth: "900px", background: "#fffaf5", fontFamily: "sans-serif" }}>
+        <div style={{ position: "relative", display: "flex", flexDirection: "row", alignItems: "stretch", minHeight: "100vh", minWidth: "900px", background: "#fffaf5", fontFamily: "sans-serif" }}>
 
 
                 {/* ===== Linke Spalte: Suche ===== */}
                 <div style={sideStyle("left")}>
+                    <h1 style={{ margin: "0 0 20px 0", color: "#ea580c", fontSize: "22px", whiteSpace: "nowrap" }}>Anime Watchlist</h1>
                     <h3 style={colTitle}>Suche</h3>
                     <div style={{ display: "flex", gap: "8px", marginBottom: "12px" }}>
                         <input
@@ -470,10 +471,9 @@ export default function Home({ onOpenUniverse }) {
                 {/* ===== Mittlere Spalte ===== */}
                 <div style={{ flex: 1, minWidth: 0, padding: "24px" }}>
             {/* Kopfzeile: Titel links, Umschalter in der Mitte */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center", marginBottom: "24px", gap: "12px" }}>
-                <h1 style={{ margin: 0, color: "#ea580c", fontSize: "26px", whiteSpace: "nowrap" }}>Anime Watchlist</h1>
-
-                <div style={{ display: "flex", background: "#ffedd5", borderRadius: "10px", padding: "4px" }}>
+            {/* Umschalter: immer genau in der Fenstermitte */}
+            <div style={{ position: "absolute", top: "24px", left: "50%", transform: "translateX(-50%)", zIndex: 5 }}>
+                <div style={{ display: "flex", background: "#ffedd5", borderRadius: "10px", padding: "4px", boxShadow: "0 1px 4px rgba(0,0,0,0.08)" }}>
                     {[["universes", "Universen"], ["watchlist", "Watchlist"]].map(([key, label]) => (
                         <button
                             key={key}
@@ -494,9 +494,8 @@ export default function Home({ onOpenUniverse }) {
                         </button>
                     ))}
                 </div>
-
-                <div />
             </div>
+            <div style={{ height: "64px" }} />
 
 
                     {view === "universes" && (
